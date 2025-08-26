@@ -1,0 +1,11 @@
+{
+  "Player": {
+    "Position": [0.0, 0.0, 0.0],
+    "MoveSpeed": 3.5,
+    "CharacterRadius": 25.0,
+    "CharacterHeight": 25.0,
+    "StickMoveSpeed" : 350.0,
+    "Gravity":8.0,
+    "Jump":170.0
+  }
+}
