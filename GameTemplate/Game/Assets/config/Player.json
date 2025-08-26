@@ -4,8 +4,10 @@
     "MoveSpeed": 3.5,
     "CharacterRadius": 25.0,
     "CharacterHeight": 25.0,
-    "StickMoveSpeed" : 350.0,
+    "StickMoveSpeed" : 150.0,
     "Gravity":8.0,
-    "Jump":170.0
+    "JumpPower":170.0,
+    "SlideDuration":0.6,
+    "SlideForwardSpeed":3.0
   }
 }

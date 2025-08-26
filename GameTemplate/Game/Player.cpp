@@ -16,7 +16,6 @@ bool Player::Start()
 	//ファイルが開けない場合処理をスキップ。
 	if (!file.is_open())
 	{
-		std::cerr << "jsonファイルが開けませんでした。" << std::endl;
 		return false;
 	}
 
@@ -35,8 +34,12 @@ bool Player::Start()
 	m_characterHeight = playerData["CharacterHeight"];
 	//座標を持ってくる。
 	auto pos = playerData["Position"];
-	//ジャンプの移動速度を持ってくる。
-	m_jump = playerData["Jump"];
+	//ジャンプ力を持ってくる。
+	m_jumpPower = playerData["JumpPower"];
+	//スライディング時間を持ってくる。
+	m_slideDuration = playerData["SlideDuration"];
+	//スライディング時の全身スピードを持ってくる。
+	m_slideForwardSpeed = playerData["SlideForwardSpeed"];
 
 	//座標をセット。
 	m_position.Set(pos[0], pos[1], pos[2]);
@@ -59,9 +62,9 @@ Player::~Player()
 
 void Player::Update()
 {
-	m_modelRender.Update();
 
-	//移動処理
+
+	//移動処理。
 	Move();
 	//ジャンプ処理。
 	Jump();
@@ -69,9 +72,49 @@ void Player::Update()
 	Rotation();
 }
 
+//移動処理。
 void Player::Move()
 {
-	//xとzの移動速度を0にする
+	//スライディング中だったら処理をする。
+	if (m_isSliding)
+	{
+		m_slideTimer -= g_gameTime->GetFrameDeltaTime();
+
+		//スティック入力があるなら少し前に進む。
+		Vector3 stickL;
+		stickL.x = g_pad[0]->GetLStickXF();
+		stickL.y = g_pad[0]->GetLStickYF();
+
+		if (stickL.Length() > 0.1f)
+		{
+			Vector3 forward = g_camera3D->GetForward();
+			forward.y = 0.0f;
+			forward.Normalize();
+
+			m_moveSpeed.x = forward.x * m_slideForwardSpeed;
+			m_moveSpeed.z = forward.z * m_slideForwardSpeed;
+		}
+
+		//重力を発生させる。
+		m_moveSpeed.y -= m_gravity;
+
+		//フレームごとに座標を移動させる。
+		m_position = m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime());
+
+		//スライディング時間が終わったらスライディング終了。
+		if (m_slideTimer <= 0.0f&&m_characterController.IsOnGround())
+		{
+			m_isSliding = false;
+		}
+
+		//モデルの座標をセットする。
+		m_modelRender.SetPosition(m_position);
+		m_modelRender.Update();
+
+		return;
+	}
+
+	//xとzの移動速度をなくす。
 	m_moveSpeed.x = 0.0f;
 	m_moveSpeed.z = 0.0f;
 
@@ -101,6 +144,8 @@ void Player::Move()
 	{
 		//重力をなくす。
 		m_moveSpeed.y = 0.0f;
+		//着地したらジャンプ終了。
+		m_isJumping = false;
 	}
 	else
 	{
@@ -110,30 +155,40 @@ void Player::Move()
 
 	//モデルの座標をセットする。
 	m_modelRender.SetPosition(m_position);
+	m_modelRender.Update();
 }
 
+//ジャンプ処理。
 void Player::Jump()
 {
 	//地面についていればジャンプできる。
 	if (g_pad[0]->IsTrigger(enButtonA)&&m_characterController.IsOnGround())
 	{
-		m_moveSpeed.y += m_jump;
+		m_isJumping = true;
+		m_isSliding = false;
+		m_moveSpeed.y += m_jumpPower;
+		m_slideTimer = 0.0f;
 	}
 }
 
+//回転処理。
 void Player::Rotation()
 {
 	if (fabsf(m_moveSpeed.x) < 0.001f && fabsf(m_moveSpeed.z) < 0.001)
 	{
 		return;
 	}
-	//回転角度。
-	float angle = atan2(-m_moveSpeed.x, m_moveSpeed.z);
 
-	m_rotation.SetRotationY(-angle);
+	if (m_isJumping)
+	{
+		//回転角度。
+		float angle = atan2(-m_moveSpeed.x, m_moveSpeed.z);
 
-	//回転を設定する。
-	m_modelRender.SetRotation(m_rotation);
+		m_rotation.SetRotationY(-angle);
+
+		//回転を設定する。
+		m_modelRender.SetRotation(m_rotation);
+	}
 }
 
 void Player::Render(RenderContext& rc)

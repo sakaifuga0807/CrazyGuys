@@ -37,6 +37,10 @@ private:
 	float m_characterHeight;//キャラコンの高さ。
 	float m_stickMoveSpeed;//スティックの移動速度。
 	float m_gravity;//重力。
-	float m_jump;//ジャンプ。
+	float m_jumpPower;//ジャンプ力。
+	float m_slideDuration;//スライディングの時間。
+	float m_slideTimer;//スライディングのタイマー。
+	float m_slideForwardSpeed;//スライディングの前進速度。
+	bool m_isJumping = false;//ジャンプしているか。
+	bool m_isSliding = false;//スライディングしているか。
 };
-
