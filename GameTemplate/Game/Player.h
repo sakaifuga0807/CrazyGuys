@@ -26,7 +26,10 @@ public:
 	{
 		m_position = position;
 	}
-
+	constexpr float ToRadian(float degree)
+	{
+		return degree * (3.14159265359f / 180.0f);
+	}
 private:
 	Quaternion m_rotation;//回転。
 	ModelRender m_modelRender;//モデルレンダー。
@@ -38,9 +41,11 @@ private:
 	float m_stickMoveSpeed;//スティックの移動速度。
 	float m_gravity;//重力。
 	float m_jumpPower;//ジャンプ力。
-	float m_slideDuration;//スライディングの時間。
-	float m_slideTimer;//スライディングのタイマー。
-	float m_slideForwardSpeed;//スライディングの前進速度。
+	float m_diveDuration;//ダイブの継続時間。
+	float m_diveTimer;//ダイブの時間。
+	float m_diveForwardSpeed;//ダイブの前進速度。
+	float m_diveRotationAngle;//ダイブの回転角度。
+	float m_fallGravityScale;//落下時の重力倍率。
 	bool m_isJumping = false;//ジャンプしているか。
-	bool m_isSliding = false;//スライディングしているか。
+	bool m_isDiving = false;//ダイブしているか。
 };
