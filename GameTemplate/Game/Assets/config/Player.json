@@ -7,7 +7,9 @@
     "StickMoveSpeed" : 150.0,
     "Gravity":8.0,
     "JumpPower":170.0,
-    "SlideDuration":0.6,
-    "SlideForwardSpeed":3.0
+    "DiveDuration":1.0,
+    "DiveForwardSpeed":3.0,
+    "RotationAngle":90.0,
+    "FallGravityScale":2.0
   }
 }
