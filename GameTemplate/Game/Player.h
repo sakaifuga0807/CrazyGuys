@@ -26,15 +26,18 @@ public:
 	{
 		m_position = position;
 	}
+	//ラジアンに変換。
 	constexpr float ToRadian(float degree)
 	{
 		return degree * (3.14159265359f / 180.0f);
 	}
+
+	Vector3 m_position;//座標。
 private:
 	Quaternion m_rotation;//回転。
 	ModelRender m_modelRender;//モデルレンダー。
 	CharacterController m_characterController;//キャラクターコントローラー。
-	Vector3 m_position;//座標。
+
 	Vector3 m_moveSpeed;//移動速度。
 	float m_characterRadius;//キャラコンの半径。
 	float m_characterHeight;//キャラコンの高さ。

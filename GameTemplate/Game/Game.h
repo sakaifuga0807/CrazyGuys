@@ -3,6 +3,7 @@
 
 class BackGround;
 class Player;
+class GameCamera;
 
 class Game : public IGameObject
 {
@@ -14,7 +15,8 @@ public:
 	void Render(RenderContext& rc);
 
 private:
-	Player* m_player;//プレイヤー。
-	BackGround* m_backGround;//ステージ。
+	Player*			m_player;			//プレイヤー。
+	BackGround*		m_backGround;		//ステージ。
+	GameCamera*		m_gameCamera;		//カメラ。
 };
 
