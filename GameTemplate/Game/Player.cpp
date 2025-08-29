@@ -20,15 +20,18 @@ bool Player::Start()
 	//ファイルが開けない場合処理をスキップ。
 	if (!file.is_open())
 	{
+		MessageBox(NULL, L"PlayerのJsonファイルが開けません。", L"エラー", MB_OK);
 		return false;
 	}
 
 	json configData;
 	file >> configData;
 
-	//Playerのデータを取得。
+	//プレイヤーの値をメンバ変数に格納。
 	auto playerData = configData["Player"];
 
+	//座標を持ってくる。
+	auto pos = playerData["Position"];
 	//スティックの移動速度を持ってくる。
 	m_stickMoveSpeed = playerData["StickMoveSpeed"];
 	//重力を持ってくる。
@@ -36,8 +39,6 @@ bool Player::Start()
 	//キャラコンのサイズを持ってくる。
 	m_characterRadius = playerData["CharacterRadius"];
 	m_characterHeight = playerData["CharacterHeight"];
-	//座標を持ってくる。
-	auto pos = playerData["Position"];
 	//ジャンプ力を持ってくる。
 	m_jumpPower = playerData["JumpPower"];
 	//スライディング時間を持ってくる。
