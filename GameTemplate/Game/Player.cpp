@@ -9,7 +9,7 @@ using json = nlohmann::json;
 bool Player::Start()
 {
 	//モデルを読み込む。
-	m_modelRender.Init("Assets/modelData/unityChan.tkm");
+	m_modelRender.Init("Assets/modelData/BulueGuys.tkm");
 
 	///////////////////////////////////////////////////////////////////////////////
 	//Jsonファイルの読み込み。
