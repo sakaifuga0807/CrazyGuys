@@ -47,7 +47,8 @@ namespace nsK2Engine {
 		modelInitData.m_vsSkinEntryPointFunc = "VSMainUsePreComputedVertexBuffer";
 		modelInitData.m_vsEntryPointFunc = "VSMainUsePreComputedVertexBuffer";
 		
-		if (m_animationClips != nullptr) {
+		//if (m_animationClips != nullptr)
+		{
 			// アニメーションあり。
 			modelInitData.m_vsSkinEntryPointFunc = "VSMainSkinUsePreComputedVertexBuffer";
 		}
@@ -215,9 +216,11 @@ namespace nsK2Engine {
 		SetupVertexShaderEntryPointFunc(modelInitData);
 		// 頂点の事前計算処理を使う。
 		modelInitData.m_computedAnimationVertexBuffer = &m_computeAnimationVertexBuffer;
-		if (m_animationClips != nullptr) {
+		//if (m_animationClips != nullptr) 
+		{
 			//スケルトンを指定する。
-			modelInitData.m_skeleton = &m_skeleton;		}
+			modelInitData.m_skeleton = &m_skeleton;	
+		}
 
 		if (isShadowReciever) {
 			modelInitData.m_psEntryPointFunc = "PSMainShadowReciever";
