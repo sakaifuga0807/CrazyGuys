@@ -9,8 +9,12 @@ using json = nlohmann::json;
 
 bool GameCamera::Start()
 {
+	///////////////////////////////////////////////////////////////////////////////
+	//Jsonファイルの読み込み。
+	///////////////////////////////////////////////////////////////////////////////
+
 	//GameCameraのJsonファイルを読み込む。
-	std::ifstream file{"Assets/config/GameCamera.json"};
+	std::ifstream file{ "Assets/config/GameCamera.json" };
 
 	//ファイルが開けなければスキップ。
 	if (!file.is_open()) 
@@ -31,15 +35,26 @@ bool GameCamera::Start()
 	m_nearClip = gameCamera["NearClip"];
 	//ファークリップを持ってくる。
 	m_farClip = gameCamera["FarClip"];
+	//カメラの上下を制限。
+	m_cameraMax = gameCamera["CameraMax"];
+	m_cameraMin = gameCamera["CameraMin"];
+
 	//注視点を持ってくる。
 	m_target_Y = gameCamera["CameraTargetOffSetY"];
 	m_target_Z = gameCamera["CameraTargetOffSetZ"];
-
-	//注視点から視点までのベクトルを設定。
-	m_toCameraPos.Set(pos[0], pos[1], pos[2]);
+	//XとYの回転角度を持ってくる。
+	m_rotationAngleX = gameCamera["RotationAngleX"];
+	m_rotationAngleY = gameCamera["RotationAngleY"];
 
 	//ファイルを閉じる。
 	file.close();
+
+	///////////////////////////////////////////////////////////////////////////////
+	//終わり。
+	///////////////////////////////////////////////////////////////////////////////
+
+	//注視点から視点までのベクトルを設定。
+	m_toCameraPos.Set(pos[0], pos[1], pos[2]);
 
 	//プレイヤーのインスタンスを探す。
 	m_player = FindGO<Player>("player");
@@ -63,8 +78,13 @@ GameCamera::~GameCamera()
 
 void GameCamera::Update()
 {
+	CameraMove();
+}
+
+void GameCamera::CameraMove()
+{
 	//注視点を計算する。
-	Vector3 target = m_player->GetPosition();
+	Vector3 target = m_player->m_position;
 	target.y += m_target_Y;
 	target.z += m_target_Z;
 
@@ -77,27 +97,26 @@ void GameCamera::Update()
 
 	//Y軸周りの回転。
 	Quaternion qRot;
-	qRot.SetRotationDeg(Vector3::AxisY, 1.8f * x);
+	qRot.SetRotationDeg(Vector3::AxisY, m_rotationAngleY * x);
 	qRot.Apply(m_toCameraPos);
 
 	//X軸周りの回転。
 	Vector3 axisX;
 	axisX.Cross(Vector3::AxisY, m_toCameraPos);
 	axisX.Normalize();
-	qRot.SetRotationDeg(axisX, 2.1f * y);
+	qRot.SetRotationDeg(axisX, m_rotationAngleX * y);
 	qRot.Apply(m_toCameraPos);
 
 	//カメラの回転の上限をチェックする。
 	Vector3 toPosDir = m_toCameraPos;
 	toPosDir.Normalize();
-	if (toPosDir.y > m_cameraYMAX)
+
+	if (toPosDir.y < m_cameraMin)
 	{
-		//カメラが上向き過ぎ。
 		m_toCameraPos = toCameraPosOld;
 	}
-	if (toPosDir.y < m_cameraYMIN)
+	else if (toPosDir.y > m_cameraMax)
 	{
-		//カメラが下向き過ぎ。
 		m_toCameraPos = toCameraPosOld;
 	}
 
