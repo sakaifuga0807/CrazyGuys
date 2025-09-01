@@ -26,19 +26,22 @@ public:
 	{
 		m_position = position;
 	}
-	//ラジアンに変換。
+	//ラジアン角に変換。
 	constexpr float ToRadian(float degree)
 	{
 		return degree * (3.14159265359f / 180.0f);
 	}
 
-	Vector3 m_position;//座標。
+
+	//メンバ変数。
 private:
-	Quaternion m_rotation;//回転。
 	ModelRender m_modelRender;//モデルレンダー。
 	CharacterController m_characterController;//キャラクターコントローラー。
-
+	FontRender m_fontRender;//フォントレンダー。
+	Quaternion m_rotation;//回転。
+	Quaternion m_currentRot;//現在の回転。
 	Vector3 m_moveSpeed;//移動速度。
+	Vector3 m_forward;//前方向。
 	float m_characterRadius;//キャラコンの半径。
 	float m_characterHeight;//キャラコンの高さ。
 	float m_stickMoveSpeed;//スティックの移動速度。
@@ -51,4 +54,6 @@ private:
 	float m_fallGravityScale;//落下時の重力倍率。
 	bool m_isJumping = false;//ジャンプしているか。
 	bool m_isDiving = false;//ダイブしているか。
+public:
+	Vector3 m_position;//座標。
 };

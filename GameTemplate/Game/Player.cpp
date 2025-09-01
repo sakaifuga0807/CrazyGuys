@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "External/nlohmann/json.hpp"
 #include <iostream>
+
 using json = nlohmann::json;
 
 bool Player::Start()
@@ -10,13 +11,13 @@ bool Player::Start()
 	//モデルを読み込む。
 	m_modelRender.Init("Assets/modelData/unityChan.tkm");
 
-	//Playerのjsonファイルを読み込む。
-	std::ifstream file{ "Assets/config/Player.json" };
-
 	///////////////////////////////////////////////////////////////////////////////
 	//Jsonファイルの読み込み。
 	///////////////////////////////////////////////////////////////////////////////
 	
+	//Playerのjsonファイルを読み込む。
+	std::ifstream file{ "Assets/config/Player.json" };
+
 	//ファイルが開けない場合処理をスキップ。
 	if (!file.is_open())
 	{
@@ -52,6 +53,7 @@ bool Player::Start()
 
 	//ファイルを閉じる。
 	file.close();
+
 	///////////////////////////////////////////////////////////////////////////////
 	//終わり。
 	///////////////////////////////////////////////////////////////////////////////
@@ -83,6 +85,12 @@ void Player::Update()
 	Jump();
 	//回転処理。
 	Rotation();
+	
+	wchar_t wcsbuf[256];
+	swprintf_s(wcsbuf, 256, L"Position: (%f, %f, %f)", m_position.x, m_position.y, m_position.z);
+
+	m_fontRender.SetText(wcsbuf);
+	m_fontRender.SetPosition(Vector3(0.0f, 430.0f, 0.0f));
 }
 
 //移動処理。
@@ -187,14 +195,14 @@ void Player::Jump()
 			m_moveSpeed.y = 0;
 		}
 
-		//ジャンプした瞬間にちょっとだけ前に進める。
-		Vector3 forward = g_camera3D->GetForward();
-		forward.y = 0.0f; forward.Normalize();
+		//プレイヤーの回転から前方向ベクトルを取得。
+		Vector3 forward = Vector3::AxisZ;
+		m_rotation.Apply(forward);
 
-
-		m_moveSpeed.x = forward.x * m_diveForwardSpeed;
-		m_moveSpeed.z = forward.z * m_diveForwardSpeed;
-		m_moveSpeed.y -= m_gravity * m_fallGravityScale;	//落下を少しだけ速くする。
+		//ダイブ方向の速度を設定。
+		m_moveSpeed.x = m_forward.x * m_diveForwardSpeed;
+		m_moveSpeed.z = m_forward.z * m_diveForwardSpeed;
+		m_moveSpeed.y -= m_gravity * m_fallGravityScale;//落下を少しだけ早くする。
 	}
 }
 
@@ -207,11 +215,19 @@ void Player::Rotation()
 		return;
 	}
 
-	//回転角度。
-	float angle = atan2(-m_moveSpeed.x, m_moveSpeed.z);
+
+	//回転角度を計算。
+	float angle = atan2(m_moveSpeed.x, m_moveSpeed.z);
+
+	//目標の回転をQuaternionに変換。
+	Quaternion targetRot;
+	targetRot.SetRotationDegY(angle);
 
 	//ラジアンを度に変換。
-	m_rotation.SetRotationY(-angle);
+	//m_rotation.SetRotationY(angle);
+
+	//スムーズに補完。
+	m_rotation.Slerp(0.1f, m_rotation, targetRot);
 
 	//回転を設定する。
 	m_modelRender.SetRotation(m_rotation);
@@ -220,4 +236,5 @@ void Player::Rotation()
 void Player::Render(RenderContext& rc)
 {
 	m_modelRender.Draw(rc);
+	m_fontRender.Draw(rc);
 }

@@ -1,11 +1,13 @@
 {
   "GameCamera": {
-    "Position":[0.0,200.0,400.0],
+    "Position":[0.0,100.0,400.0],
     "NearClip":1.0,
     "FarClip":20000.0,
     "CameraTargetOffSetY":100.0,
     "CameraTargetOffSetZ":30.0,
-    "CameraMax":-0.99,
-    "CameraMin":0.99
+    "RotationAngleX":2.1,
+    "RotationAngleY":1.8,
+    "CameraMax":0.99,
+    "CameraMin":-0.2
   }
 }
