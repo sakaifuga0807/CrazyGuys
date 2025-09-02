@@ -1,14 +1,14 @@
 {
   "Player": {
-    "Position": [0.0, 0.0, 0.0],
+    "Position": [0.0, 10.0, 0.0],
     "MoveSpeed": 3.5,
     "CharacterRadius": 25.0,
     "CharacterHeight": 25.0,
     "StickMoveSpeed" : 150.0,
-    "Gravity":8.0,
-    "JumpPower":170.0,
+    "Gravity":10.0,
+    "JumpPower":500.0,
     "DiveDuration":1.0,
-    "DiveForwardSpeed":3.0,
+    "DiveForwardSpeed":100.0,
     "RotationAngle":90.0,
     "FallGravityScale":2.0
   }
