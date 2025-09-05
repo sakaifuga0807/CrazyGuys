@@ -15,17 +15,8 @@ public:
 	//回転処理。
 	void Rotation();
 
-	//座標を取得。
-	const Vector3& GetPosition()const
-	{
-		return m_position;
-	}
 
-	//座標を設定。
-	void SetPosition(Vector3 position)
-	{
-		m_position = position;
-	}
+
 	//ラジアン角に変換。
 	constexpr float ToRadian(float degree)
 	{
@@ -40,20 +31,20 @@ private:
 	FontRender m_fontRender;//フォントレンダー。
 	Quaternion m_rotation;//回転。
 	Quaternion m_currentRot;//現在の回転。
-	Vector3 m_moveSpeed;//移動速度。
-	Vector3 m_forward;//前方向。
-	float m_characterRadius;//キャラコンの半径。
-	float m_characterHeight;//キャラコンの高さ。
-	float m_stickMoveSpeed;//スティックの移動速度。
-	float m_gravity;//重力。
-	float m_jumpPower;//ジャンプ力。
-	float m_diveDuration;//ダイブの継続時間。
-	float m_diveTimer;//ダイブの時間。
-	float m_diveForwardSpeed;//ダイブの前進速度。
-	float m_diveRotationAngle;//ダイブの回転角度。
-	float m_fallGravityScale;//落下時の重力倍率。
+	Vector3 m_moveSpeed=Vector3::Zero;//移動速度。
+	Vector3 m_forward=Vector3::Zero;//前方向。
+	float m_characterRadius=0.0f;//キャラコンの半径。
+	float m_characterHeight=0.0f;//キャラコンの高さ。
+	float m_stickMoveSpeed = 0.0f;;//スティックの移動速度。
+	float m_gravity=0.0f;//重力。
+	float m_jumpPower=0.0f;//ジャンプ力。
+	float m_diveDuration=0.0f;//ダイブの継続時間。
+	float m_diveTimer=0.0f;//ダイブの時間。
+	float m_diveForwardSpeed=0.0f;//ダイブの前進速度。
+	float m_diveRotationAngle=0.0f;//ダイブの回転角度。
+	float m_fallGravityScale=0.0f;//落下時の重力倍率。
 	bool m_isJumping = false;//ジャンプしているか。
 	bool m_isDiving = false;//ダイブしているか。
 public:
-	Vector3 m_position;//座標。
+	Vector3 m_position=Vector3::Zero;//座標。
 };

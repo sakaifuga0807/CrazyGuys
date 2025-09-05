@@ -1,20 +1,22 @@
 #include "stdafx.h"
-#include <fstream>
-#include "Player.h"
 #include "External/nlohmann/json.hpp"
 #include <iostream>
+#include <fstream>
+#include "Player.h"
+
 
 using json = nlohmann::json;
 
 bool Player::Start()
 {
 	//モデルを読み込む。
+	//m_modelRender.Init("Assets/modelData/unityChan.tkm");
 	m_modelRender.Init("Assets/modelData/BulueGuys.tkm");
 
 	///////////////////////////////////////////////////////////////////////////////
 	//Jsonファイルの読み込み。
 	///////////////////////////////////////////////////////////////////////////////
-	
+
 	//Playerのjsonファイルを読み込む。
 	std::ifstream file{ "Assets/config/Player.json" };
 
@@ -85,9 +87,10 @@ void Player::Update()
 	Jump();
 	//回転処理。
 	Rotation();
-	
+
+	//今だけ座標を表示。(使わなくなったらけしてねー)
 	wchar_t wcsbuf[256];
-	swprintf_s(wcsbuf, 256, L"Position: (%f, %f, %f)", m_position.x, m_position.y, m_position.z);
+	swprintf_s(wcsbuf, 256, L"Pos: (%f, %f, %f)", m_position.x, m_position.y, m_position.z);
 
 	m_fontRender.SetText(wcsbuf);
 	m_fontRender.SetPosition(Vector3(0.0f, 430.0f, 0.0f));
@@ -96,51 +99,28 @@ void Player::Update()
 //移動処理。
 void Player::Move()
 {
+	m_moveSpeed.x = 0.0f;
+	m_moveSpeed.z = 0.0f;
+
 	//左スティックの入力量を取得。
-	Vector3 stickL;
-	stickL.x = g_pad[0]->GetLStickXF();
-	stickL.y = g_pad[0]->GetLStickYF();	
+	float lStick_x = g_pad[0]->GetLStickXF();
+	float lStick_y = g_pad[0]->GetLStickYF();
 
 	//カメラの前宝庫と右方向のベクトルを持ってくる。
 	Vector3 forward = g_camera3D->GetForward();
 	Vector3 right = g_camera3D->GetRight();
 
-	//y方向には移動させない。
+	//XZ平面での前方向、右方向に変換する。
 	forward.y = 0.0f; forward.Normalize();
 	right.y = 0.0f; right.Normalize();
+	//XZ成分の移動速度をクリア。
+	m_moveSpeed += forward * lStick_x * m_stickMoveSpeed;
+	m_moveSpeed += right * lStick_y * m_stickMoveSpeed;
 
-	//ダイブでなければ移動処理を行う。
-	if (!m_isDiving)
+	if (fabsf(lStick_x) > 0.001 || fabsf(lStick_y) > 0.001)
 	{
-		//xとzの移動速度をなくす。
-		m_moveSpeed.x = 0.0f;
-		m_moveSpeed.z = 0.0f;
-
-		//XZ成分の移動速度をクリア。
-		m_moveSpeed += forward * stickL.y * m_stickMoveSpeed;
-		m_moveSpeed += right * stickL.x * m_stickMoveSpeed;
-	}
-	else
-	{
-		//スティックが倒されていればその方向に移動。
-		if (stickL.Length() > 0.1)
-		{
-			Vector3 diveDir = forward * stickL.y + right * stickL.x;
-			diveDir.Normalize();
-			m_moveSpeed.x = diveDir.x * m_diveForwardSpeed;		//奥方向への移動速度を加算。
-			m_moveSpeed.z = diveDir.z * m_diveForwardSpeed;		//右方向への移動速度を加算。
-		}
-		else
-		{
-			//徐々に減速させる。
-			m_moveSpeed.x *= 0.95;
-			m_moveSpeed.z *= 0.95;
-		}
-
-		//ダイブ中は前傾姿勢にする。
-		m_rotation.SetRotationX(ToRadian(m_diveRotationAngle));
-		//回転を設定。
-		m_modelRender.SetRotation(m_rotation);
+		m_moveSpeed.x = (forward.x * lStick_y + right.x * lStick_x) * m_stickMoveSpeed;
+		m_moveSpeed.z = (forward.z * lStick_y + right.z * lStick_x) * m_stickMoveSpeed;
 	}
 
 	//キャラコンをExecute関数で毎フレーム移動させる
@@ -152,12 +132,8 @@ void Player::Move()
 		//重力をなくす。
 		m_moveSpeed.y = 0.0f;
 		//フラグを戻す。
-		m_isJumping = false;
 		m_isDiving = false;
-
-		//回転角度も戻す。
-		m_rotation.SetRotationX(0.0f);
-		m_modelRender.SetRotation(m_rotation);
+		m_moveSpeed = Vector3::Zero;
 	}
 	else
 	{
@@ -175,7 +151,7 @@ void Player::Move()
 void Player::Jump()
 {
 	//地面についていればジャンプできる。
-	if (g_pad[0]->IsTrigger(enButtonA)&&m_characterController.IsOnGround())
+	if (g_pad[0]->IsTrigger(enButtonA) && m_characterController.IsOnGround())
 	{
 		//ジャンプのフラグを立てる。
 		m_isJumping = true;
@@ -184,47 +160,56 @@ void Player::Jump()
 		//ジャンプ力を加える。
 		m_moveSpeed.y += m_jumpPower;
 	}
-	else if (m_isJumping&&!m_isDiving&&g_pad[0]->IsTrigger(enButtonA))
+	else if (m_isJumping && !m_isDiving && g_pad[0]->IsTrigger(enButtonA))
 	{
 		//ダイブのフラグを立てる。
 		m_isDiving = true;
-		
+
 		//上昇しているなら慣性を消して一気に落下させる。
 		if (m_moveSpeed.y > 0)
 		{
 			m_moveSpeed.y = 0;
 		}
 
-		//プレイヤーの回転から前方向ベクトルを取得。
-		Vector3 forward = Vector3::AxisZ;
-		m_rotation.Apply(forward);
+		Vector3 forward = g_camera3D->GetForward();
+		forward.y = 0.0f;
+		forward.Normalize();
 
-		//ダイブ方向の速度を設定。
-		m_moveSpeed.x = m_forward.x * m_diveForwardSpeed;
-		m_moveSpeed.z = m_forward.z * m_diveForwardSpeed;
-		m_moveSpeed.y -= m_gravity * m_fallGravityScale;//落下を少しだけ早くする。
+		m_moveSpeed.x = forward.x * m_diveForwardSpeed;
+		m_moveSpeed.z = forward.z * m_diveForwardSpeed;
+		m_moveSpeed.y = -m_gravity * m_fallGravityScale * m_fallGravityScale;
+
+		m_moveSpeed.y -= m_gravity * 5.0f;
 	}
 }
 
 //回転処理。
 void Player::Rotation()
 {
+	float stickX = g_pad[0]->GetLStickXF();
+	float stickY = g_pad[0]->GetLStickYF();
+
 	//スティックの入力がなければスキップ。
-	if (fabsf(m_moveSpeed.x) < 0.001f && fabsf(m_moveSpeed.z) < 0.001)
+	if (fabsf(stickX) < 0.001 && fabsf(stickY) < 0.001)
 	{
 		return;
 	}
 
+	//カメラを基準に方向を決める
+	Vector3 forward = g_camera3D->GetForward();
+	Vector3 right = g_camera3D->GetRight();
+	forward.y = 0.0f; forward.Normalize();
+	right.y = 0.0f; right.Normalize();
 
-	//回転角度を計算。
-	float angle = atan2(m_moveSpeed.x, m_moveSpeed.z);
+	//入力方向。
+	Vector3 dir = forward * stickY + right * stickX;
+	dir.Normalize();
+
+	float angle = atan2(dir.x, dir.z);
 
 	//目標の回転をQuaternionに変換。
 	Quaternion targetRot;
-	targetRot.SetRotationDegY(angle);
-
-	//ラジアンを度に変換。
-	//m_rotation.SetRotationY(angle);
+	targetRot.SetRotationY(angle);
 
 	//スムーズに補完。
 	m_rotation.Slerp(0.1f, m_rotation, targetRot);
