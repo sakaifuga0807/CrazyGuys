@@ -26,7 +26,6 @@ bool GameCamera::Start()
 	json cameraConfig;
 	file >> cameraConfig;
 
-	//Jsonの値をメンバ変数に格納。
 	auto gameCamera = cameraConfig["GameCamera"];
 
 	//座標を持ってくる。
@@ -88,6 +87,11 @@ void GameCamera::CameraMove()
 	target.y += m_target_Y;
 	target.z += m_target_Z;
 
+	//前フレームの注視点を保持して補完。
+	static Vector3 lastTarget = target;
+	float followSpeed = 0.1f;
+	lastTarget = lastTarget + (target - lastTarget) * followSpeed;
+
 	//プレイヤーの注視点を設定。
 	Vector3 toCameraPosOld = m_toCameraPos;
 
@@ -121,12 +125,11 @@ void GameCamera::CameraMove()
 	}
 
 	//視点を計算する。
-	Vector3 pos = target + m_toCameraPos;
+	Vector3 pos = lastTarget + m_toCameraPos;
 
 	//メインカメラに注視点と座標を設定。
-	g_camera3D->SetTarget(target);
+	g_camera3D->SetTarget(lastTarget);
 	g_camera3D->SetPosition(pos);
-
 	//カメラの更新。
 	g_camera3D->Update();
 }
