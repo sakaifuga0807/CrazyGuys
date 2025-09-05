@@ -1,6 +1,12 @@
 #include "k2EnginePreCompile.h"
 #include "RenderingEngine.h"
 
+namespace
+{
+    const UINT FRAME_BUFFER_WIDTH_HALF = FRAME_BUFFER_W / 2;//画面分割用のビューポートで使用する横幅。
+    const UINT FRAME_BUFFER_HEIGHT_HALF = FRAME_BUFFER_H / 2;//画面分割用のビューポートで使用する立幅。
+}
+
 namespace nsK2Engine {
 
     RenderingEngine::RenderingEngine()
