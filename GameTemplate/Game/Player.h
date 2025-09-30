@@ -1,6 +1,8 @@
 #pragma once
 
-class Player:public IGameObject
+#include "ICharacter.h"
+
+class Player:public ICharacter
 {
 public:
 	bool Start();
@@ -14,15 +16,14 @@ public:
 	void Jump();
 	//回転処理。
 	void Rotation();
-
-
+	//座標をリセットする。
+	void ResetPosition();
 
 	//ラジアン角に変換。
 	constexpr float ToRadian(float degree)
 	{
 		return degree * (3.14159265359f / 180.0f);
 	}
-
 
 	//メンバ変数。
 private:
@@ -33,6 +34,7 @@ private:
 	Quaternion m_currentRot;//現在の回転。
 	Vector3 m_moveSpeed=Vector3::Zero;//移動速度。
 	Vector3 m_forward=Vector3::Zero;//前方向。
+	const Vector3 m_firstPosition = Vector3::Zero;//初期位置。
 	float m_characterRadius=0.0f;//キャラコンの半径。
 	float m_characterHeight=0.0f;//キャラコンの高さ。
 	float m_stickMoveSpeed = 0.0f;;//スティックの移動速度。
