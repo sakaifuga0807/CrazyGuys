@@ -51,7 +51,7 @@ bool Player::Start()
 	//回転角度を持ってくる
 	m_diveRotationAngle = playerData["RotationAngle"];
 	//落下時の重力倍率を持ってくる。
-	m_fallGravityScale = playerData["FallGravityScale"];
+	m_fallGravityScale = playerData["FallGravity"];
 
 	//ファイルを閉じる。
 	file.close();
@@ -87,6 +87,8 @@ void Player::Update()
 	Jump();
 	//回転処理。
 	Rotation();
+	//一定距離落下したら座標ををリセットする。	
+	ResetPosition();
 
 	//今だけ座標を表示。(使わなくなったらけしてねー)
 	wchar_t wcsbuf[256];
@@ -99,8 +101,52 @@ void Player::Update()
 //移動処理。
 void Player::Move()
 {
-	m_moveSpeed.x = 0.0f;
-	m_moveSpeed.z = 0.0f;
+
+	// ダイブ中ならスティック移動は無効化
+	if (m_isDiving) {
+		// ダイブの慣性をちょっと減速させても良い
+		m_moveSpeed.x *= 0.9f;
+		m_moveSpeed.z *= 0.9f;
+	}
+	else {
+		// スティックの入力量を取得
+		float lStick_x = g_pad[0]->GetLStickXF();
+		float lStick_y = g_pad[0]->GetLStickYF();
+
+		Vector3 forward = g_camera3D->GetForward();
+		Vector3 right = g_camera3D->GetRight();
+
+		forward.y = 0.0f; forward.Normalize();
+		right.y = 0.0f; right.Normalize();
+
+		if (fabsf(lStick_x) > 0.001f || fabsf(lStick_y) > 0.001f) {
+			m_moveSpeed.x = (forward.x * lStick_y + right.x * lStick_x) * m_stickMoveSpeed * 2;
+			m_moveSpeed.z = (forward.z * lStick_y + right.z * lStick_x) * m_stickMoveSpeed * 2;
+		}
+		else {
+			m_moveSpeed.x = 0.0f;
+			m_moveSpeed.z = 0.0f;
+		}
+	}
+
+	// キャラコンを実行
+	m_position = m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime());
+
+	if (m_characterController.IsOnGround()) {
+		m_moveSpeed.y = 0.0f;
+		m_isDiving = false;   // 地面についたらダイブ終了
+		m_isJumping = false;
+	}
+	else {
+		m_moveSpeed.y -= m_gravity;
+	}
+
+	m_modelRender.SetPosition(m_position);
+	m_modelRender.Update();
+
+
+	/*//m_moveSpeed.x = 0.0f;
+	//m_moveSpeed.z = 0.0f;
 
 	//左スティックの入力量を取得。
 	float lStick_x = g_pad[0]->GetLStickXF();
@@ -119,8 +165,13 @@ void Player::Move()
 
 	if (fabsf(lStick_x) > 0.001 || fabsf(lStick_y) > 0.001)
 	{
-		m_moveSpeed.x = (forward.x * lStick_y + right.x * lStick_x) * m_stickMoveSpeed;
-		m_moveSpeed.z = (forward.z * lStick_y + right.z * lStick_x) * m_stickMoveSpeed;
+		m_moveSpeed.x = (forward.x * lStick_y + right.x * lStick_x) * m_stickMoveSpeed * 2;
+		m_moveSpeed.z = (forward.z * lStick_y + right.z * lStick_x) * m_stickMoveSpeed * 2;
+	}
+	else
+	{
+		//m_moveSpeed.x = 0.95f;
+		//m_moveSpeed.z = 0.95f;
 	}
 
 	//キャラコンをExecute関数で毎フレーム移動させる
@@ -133,7 +184,7 @@ void Player::Move()
 		m_moveSpeed.y = 0.0f;
 		//フラグを戻す。
 		m_isDiving = false;
-		m_moveSpeed = Vector3::Zero;
+		m_isJumping = false;
 	}
 	else
 	{
@@ -144,7 +195,7 @@ void Player::Move()
 	//モデルの座標をセットする。
 	m_modelRender.SetPosition(m_position);
 	//モデルを更新する。
-	m_modelRender.Update();
+	m_modelRender.Update();*/
 }
 
 //ジャンプ処理。
@@ -168,18 +219,16 @@ void Player::Jump()
 		//上昇しているなら慣性を消して一気に落下させる。
 		if (m_moveSpeed.y > 0)
 		{
-			m_moveSpeed.y = 0;
+			//m_moveSpeed.y = 0;
 		}
 
-		Vector3 forward = g_camera3D->GetForward();
+		Vector3 forward = m_forward;
 		forward.y = 0.0f;
 		forward.Normalize();
 
 		m_moveSpeed.x = forward.x * m_diveForwardSpeed;
 		m_moveSpeed.z = forward.z * m_diveForwardSpeed;
 		m_moveSpeed.y = -m_gravity * m_fallGravityScale * m_fallGravityScale;
-
-		m_moveSpeed.y -= m_gravity * 5.0f;
 	}
 }
 
@@ -198,16 +247,20 @@ void Player::Rotation()
 	//カメラを基準に方向を決める
 	Vector3 forward = g_camera3D->GetForward();
 	Vector3 right = g_camera3D->GetRight();
-	forward.y = 0.0f; forward.Normalize();
-	right.y = 0.0f; right.Normalize();
+	forward.y = 0.0f;
+	forward.Normalize();
+	right.y = 0.0f; 
+	right.Normalize();
 
 	//入力方向。
 	Vector3 dir = forward * stickY + right * stickX;
 	dir.Normalize();
 
+	m_forward = dir;
+
 	float angle = atan2(dir.x, dir.z);
 
-	//目標の回転をQuaternionに変換。
+	//回転をQuaternionに変換。
 	Quaternion targetRot;
 	targetRot.SetRotationY(angle);
 
@@ -216,6 +269,22 @@ void Player::Rotation()
 
 	//回転を設定する。
 	m_modelRender.SetRotation(m_rotation);
+}
+
+void Player::ResetPosition()
+{
+	if (m_position.y <= -3000.0f)
+	{
+		//最初の位置に戻す。
+		m_position = m_firstPosition;
+		//キャラコンも最初の位置に戻す。
+		m_characterController.SetPosition(m_position);
+
+		//状態フラグもリセットしておく。
+		m_isJumping = false;
+		m_isDiving = false;
+
+	}
 }
 
 void Player::Render(RenderContext& rc)

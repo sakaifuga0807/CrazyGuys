@@ -4,12 +4,12 @@
     "MoveSpeed": 3.5,
     "CharacterRadius": 25.0,
     "CharacterHeight": 25.0,
-    "StickMoveSpeed" : 150.0,
+    "StickMoveSpeed" : 300,
     "Gravity":20.0,
-    "JumpPower":500.0,
-    "DiveDuration":1.0,
-    "DiveForwardSpeed":100.0,
+    "JumpPower":550.0,
+    "DiveDuration":1.5,
+    "DiveForwardSpeed":2000.0,
     "RotationAngle":90.0,
-    "FallGravityScale":2.0
+    "FallGravity":2.5
   }
 }
