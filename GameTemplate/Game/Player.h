@@ -2,6 +2,10 @@
 
 #include "ICharacter.h"
 
+class Goal;
+class Result;
+class Game;
+
 class Player:public ICharacter
 {
 public:
@@ -9,7 +13,6 @@ public:
 	Player();
 	~Player();
 	void Update();
-	void Render(RenderContext& rc);
 	//移動処理。
 	void Move();
 	//ジャンプ処理。
@@ -18,6 +21,9 @@ public:
 	void Rotation();
 	//座標をリセットする。
 	void ResetPosition();
+	void Collision();
+
+	void Render(RenderContext& rc);
 
 	//ラジアン角に変換。
 	constexpr float ToRadian(float degree)
@@ -27,6 +33,9 @@ public:
 
 	//メンバ変数。
 private:
+	Game* m_game;//ゲーム。
+	Result* m_result;//リザルト。
+	Goal* m_goal;//ゴール。
 	ModelRender m_modelRender;//モデルレンダー。
 	CharacterController m_characterController;//キャラクターコントローラー。
 	FontRender m_fontRender;//フォントレンダー。
