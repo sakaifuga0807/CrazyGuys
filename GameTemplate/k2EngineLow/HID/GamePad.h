@@ -83,6 +83,30 @@ namespace nsK2EngineLow {
 		{
 			return m_trigger[button] != 0;
 		}
+
+		/// <summary>
+		/// 何かのボタンが押されたか判定。
+		/// </summary>
+		/// <returns>trueが返ってきたら押された。</returns>
+		bool IsTriggerAnyKey() const
+		{
+			return IsTrigger(enButtonUp)
+				|| IsTrigger(enButtonDown)
+				|| IsTrigger(enButtonLeft)
+				|| IsTrigger(enButtonRight)
+				|| IsTrigger(enButtonA)
+				|| IsTrigger(enButtonB)
+				|| IsTrigger(enButtonX)
+				|| IsTrigger(enButtonY)
+				|| IsTrigger(enButtonSelect)
+				|| IsTrigger(enButtonStart)
+				|| IsTrigger(enButtonRB1)
+				|| IsTrigger(enButtonRB2)
+				|| IsTrigger(enButtonRB3)
+				|| IsTrigger(enButtonLB1)
+				|| IsTrigger(enButtonLB2)
+				|| IsTrigger(enButtonLB3);
+		}
 		
 		/// <summary>
 		/// ボタンが押されているか判定
@@ -117,6 +141,7 @@ namespace nsK2EngineLow {
 				|| IsPress(enButtonLB2)
 				|| IsPress(enButtonLB3);
 		}
+
 		/// <summary>
 		/// 左スティックのx軸の入力量を取得
 		/// </summary>
