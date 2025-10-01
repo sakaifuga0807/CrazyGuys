@@ -1,9 +1,10 @@
 #pragma once
-#include "Level3DRender/LevelRender.h"
 
 class BackGround;
 class Player;
 class GameCamera;
+class Goal;
+
 
 class Game : public IGameObject
 {
@@ -18,5 +19,8 @@ private:
 	Player*			m_player;			//プレイヤー。
 	BackGround*		m_backGround;		//ステージ。
 	GameCamera*		m_gameCamera;		//カメラ。
+	Goal*			m_goal;				//ゴール。
+public:
+	bool m_isDelete = false;			//削除するか。
 };
 
