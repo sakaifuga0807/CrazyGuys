@@ -7,7 +7,7 @@ public:
 	bool Start()override;
 	Actor();
 	virtual~Actor();
-	virtual void Update()=0;//純粋仮想関数。必ず派生先で実装しなければならない。
+	virtual void Update()=0;//純粋仮想関数。必ず派生先で実装しなければコンパイルエラーになる。
 	void Render(RenderContext& rc)override;
 
 	//座標を取得。
@@ -36,11 +36,6 @@ public:
 	void SetScale(const Vector3& scale)
 	{
 		m_scale = scale;
-	}
-
-	const Vector3 GetScale()const
-	{
-		return m_scale;
 	}
 
 protected:

@@ -1,20 +1,19 @@
 #pragma once
 
-class SelectPlayer;
-class Game;
+class Title;
 
-class Title:public IGameObject
+class Result:public IGameObject
 {
 public:
 	bool Start();
-	Title();
-	~Title();
+	Result();
+	~Result();
 	void Update();
 	void Render(RenderContext& rc);
 
 private:
 	//メンバ変数。
-	Game* m_game;//ゲームクラスのポインタ。
+	Title* m_title;//タイトル。
 	SpriteRender m_spriteRender;//スプライトレンダー。
 };
 
