@@ -3,7 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include "Player.h"
-
+#include "Goal.h"
+#include "Result.h"
+#include "Game.h"
 
 using json = nlohmann::json;
 
@@ -12,6 +14,13 @@ bool Player::Start()
 	//モデルを読み込む。
 	//m_modelRender.Init("Assets/modelData/unityChan.tkm");
 	m_modelRender.Init("Assets/modelData/BulueGuys.tkm");
+
+	//AnimationClipの読み込み。
+	/*static AnimationClip clips[4];
+	clips[0].Load("Assets/animData/Idle.tka");
+	clips[1].Load("Assets/animData/Run.tka");
+	clips[2].Load("Assets/animData/Jump.tka");
+	clips[3].Load("Assets/animData/Dive.tka");*/
 
 	///////////////////////////////////////////////////////////////////////////////
 	//Jsonファイルの読み込み。
@@ -35,6 +44,8 @@ bool Player::Start()
 
 	//座標を持ってくる。
 	auto pos = playerData["Position"];
+	//大きさを持ってくる。
+	auto scale = playerData["Scale"];
 	//スティックの移動速度を持ってくる。
 	m_stickMoveSpeed = playerData["StickMoveSpeed"];
 	//重力を持ってくる。
@@ -60,11 +71,19 @@ bool Player::Start()
 	//終わり。
 	///////////////////////////////////////////////////////////////////////////////
 
+	//大きさを設定。
+	m_modelRender.SetScale(scale[0],scale[1],scale[2]);
+
 	//座標をセット。
-	m_position.Set(pos[0], pos[1], pos[2]);
+	//m_position.Set(pos[0], pos[1], pos[2]);
+	m_position.Set(209.0f, 3087.0f, -52447);
 
 	//キャラコンを初期化。
 	m_characterController.Init(m_characterRadius, m_characterHeight, m_position);
+
+	//インスタンスアドレスを検索。
+	m_goal = FindGO<Goal>("goal");
+	m_game = FindGO<Game>("game");
 
 	return true;
 }
@@ -89,6 +108,8 @@ void Player::Update()
 	Rotation();
 	//一定距離落下したら座標ををリセットする。	
 	ResetPosition();
+	//コリジョン処理。
+	Collision();
 
 	//今だけ座標を表示。(使わなくなったらけしてねー)
 	wchar_t wcsbuf[256];
@@ -143,59 +164,6 @@ void Player::Move()
 
 	m_modelRender.SetPosition(m_position);
 	m_modelRender.Update();
-
-
-	/*//m_moveSpeed.x = 0.0f;
-	//m_moveSpeed.z = 0.0f;
-
-	//左スティックの入力量を取得。
-	float lStick_x = g_pad[0]->GetLStickXF();
-	float lStick_y = g_pad[0]->GetLStickYF();
-
-	//カメラの前宝庫と右方向のベクトルを持ってくる。
-	Vector3 forward = g_camera3D->GetForward();
-	Vector3 right = g_camera3D->GetRight();
-
-	//XZ平面での前方向、右方向に変換する。
-	forward.y = 0.0f; forward.Normalize();
-	right.y = 0.0f; right.Normalize();
-	//XZ成分の移動速度をクリア。
-	m_moveSpeed += forward * lStick_x * m_stickMoveSpeed;
-	m_moveSpeed += right * lStick_y * m_stickMoveSpeed;
-
-	if (fabsf(lStick_x) > 0.001 || fabsf(lStick_y) > 0.001)
-	{
-		m_moveSpeed.x = (forward.x * lStick_y + right.x * lStick_x) * m_stickMoveSpeed * 2;
-		m_moveSpeed.z = (forward.z * lStick_y + right.z * lStick_x) * m_stickMoveSpeed * 2;
-	}
-	else
-	{
-		//m_moveSpeed.x = 0.95f;
-		//m_moveSpeed.z = 0.95f;
-	}
-
-	//キャラコンをExecute関数で毎フレーム移動させる
-	m_position = m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime());
-
-	//キャラコンが地面に付いていれば。
-	if (m_characterController.IsOnGround())
-	{
-		//重力をなくす。
-		m_moveSpeed.y = 0.0f;
-		//フラグを戻す。
-		m_isDiving = false;
-		m_isJumping = false;
-	}
-	else
-	{
-		//重力を発生させる。
-		m_moveSpeed.y -= m_gravity;
-	}
-
-	//モデルの座標をセットする。
-	m_modelRender.SetPosition(m_position);
-	//モデルを更新する。
-	m_modelRender.Update();*/
 }
 
 //ジャンプ処理。
@@ -219,7 +187,7 @@ void Player::Jump()
 		//上昇しているなら慣性を消して一気に落下させる。
 		if (m_moveSpeed.y > 0)
 		{
-			//m_moveSpeed.y = 0;
+			m_moveSpeed.y = 0;
 		}
 
 		Vector3 forward = m_forward;
@@ -283,7 +251,23 @@ void Player::ResetPosition()
 		//状態フラグもリセットしておく。
 		m_isJumping = false;
 		m_isDiving = false;
+	}
+}
 
+void Player::Collision()
+{
+	//コリジョンの取得。
+	const auto& collisions = g_collisionObjectManager->FindCollisionObjects("Goal");
+	//コリジョンの配列をfor文で回す。
+	for (auto collision : collisions)
+	{
+		//コリジョンとキャラが当たったら。
+		if (collision->IsHit(m_characterController))
+		{
+			NewGO<Result>(0, "result");
+			m_game->m_isDelete = true;
+			//DeleteGO(this);
+		}
 	}
 }
 
