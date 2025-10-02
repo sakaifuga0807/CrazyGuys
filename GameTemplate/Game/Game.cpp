@@ -19,7 +19,7 @@ bool Game::Start()
 	m_skyCube = NewGO<SkyCube>(0, "skycube");
 	m_skyCube->SetType(enSkyCubeType_DayToon);
 	m_skyCube->SetScale(10000.0f);
-	m_skyCube->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+	//m_skyCube->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
 
 	return true;
 }
