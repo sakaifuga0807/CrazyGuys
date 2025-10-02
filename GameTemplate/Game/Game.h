@@ -21,6 +21,7 @@ private:
 	GameCamera*		m_gameCamera;		//カメラ。
 	Goal*			m_goal;				//ゴール。
 public:
+	SkyCube* m_skyCube;					//スカイキューブ。
 	bool m_isDelete = false;			//削除するか。
 };
 
