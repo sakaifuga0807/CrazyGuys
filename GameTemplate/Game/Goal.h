@@ -35,11 +35,11 @@ public:
 
 private:
 	//メンバ変数。
-	Player* m_player;//プレイヤー。
-	ModelRender m_modelRender;//モデルレンダー。
-	Vector3 m_position=Vector3::Zero;//座標。
-	Quaternion m_rotation;//回転。
-	Vector3 m_scale;//大きさ。
-	CollisionObject* m_collisionObj;//コリジョンオブジェクト。
+	Player*				m_player;						//プレイヤー。
+	ModelRender			m_modelRender;					//モデルレンダー。
+	Vector3				m_position=Vector3::Zero;		//座標。
+	Quaternion			m_rotation;						//回転。
+	Vector3				m_scale;						//大きさ。
+	CollisionObject*	m_collisionObj;					//コリジョンオブジェクト。
 };
 
