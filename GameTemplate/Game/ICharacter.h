@@ -21,8 +21,32 @@ public:
 	{
 		return m_playerID;
 	}
+	/*//
+	virtual void HandleInput() = 0;
+	virtual void ApplyPhysics() = 0;*/
+
+	//アニメーションの初期化。
+	void InitAnimation(Skeleton& skeleton, AnimationClip* clips, int numClips)
+	{
+		m_animation.Init(skeleton, clips, numClips);
+	}
+
+	//アニメーションの再生。
+	void PlayrAnimation(int clipNo, float blendTime = 0.1f)
+	{
+		m_animation.Play(clipNo, blendTime);
+		m_currentCllip = clipNo;
+	}
 
 protected:
-	int m_playerID = 0;//プレイヤーID。
+	Vector3 m_velocity = Vector3::Zero;
+	int m_playerID = 0;//プレイヤー識別用。
+
+	float m_moveSpeed = 0.0f;
+	float m_jumpPower = 0.0f;
+	float m_gravity = 0.0f;
+
+	Animation m_animation;
+	int m_currentCllip = -1;
 };
 
