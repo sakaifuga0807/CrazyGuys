@@ -4,16 +4,15 @@
 class Actor:public IGameObject
 {
 public:
-	bool Start()override;
-	Actor();
-	virtual~Actor();
-	virtual void Update()=0;//純粋仮想関数。必ず派生先で実装しなければコンパイルエラーになる。
-	void Render(RenderContext& rc)override;
-
-	//座標を取得。
-	const Vector3& GetPosition()const
+	bool Start()override
 	{
-		return m_position;
+		return true;
+	}
+	Actor()=default;//デフォルトコンストラクタをコンパイラに自動生成させる。
+	virtual~Actor() {};
+	void Render(RenderContext& rc)override
+	{
+		m_modelRender.Draw(rc);
 	}
 
 	//座標を設定。
@@ -22,13 +21,19 @@ public:
 		m_position = position;
 	}
 
+	//座標を取得。
+	const Vector3& GetPosition()const
+	{
+		return m_position;
+	}
 
+	//回転を設定。
 	void SetRotation(const Quaternion& rot)
 	{
 		m_rotation = rot;
 	}
 
-	Quaternion GetRotation()const
+	const Quaternion& GetRotation()const
 	{
 		return m_rotation;
 	}
@@ -39,10 +44,10 @@ public:
 	}
 
 protected:
-
-	Vector3 m_position = Vector3::Zero;
-	Quaternion m_rotation = Quaternion::Identity;
-	Vector3 m_scale = Vector3::One;
-	ModelRender m_modelRender;
+	//派生先のクラスで使えるようにする。
+	Quaternion m_rotation = Quaternion::Identity;//回転。
+	ModelRender m_modelRender;//モデルレンダー。
+	Vector3 m_position = Vector3::Zero;//座標。
+	Vector3 m_scale = Vector3::One;//大きさ。
 };
 
