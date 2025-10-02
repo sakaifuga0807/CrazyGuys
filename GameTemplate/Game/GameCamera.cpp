@@ -4,6 +4,7 @@
 #include "External/nlohmann/json.hpp"
 #include "GameCamera.h"
 #include "Player.h"
+#include "Actor.h"
 
 using json = nlohmann::json;
 
@@ -37,13 +38,13 @@ bool GameCamera::Start()
 	//カメラの上下を制限。
 	m_cameraMax = gameCamera["CameraMax"];
 	m_cameraMin = gameCamera["CameraMin"];
-
 	//注視点を持ってくる。
 	m_target_Y = gameCamera["CameraTargetOffSetY"];
 	m_target_Z = gameCamera["CameraTargetOffSetZ"];
 	//XとYの回転角度を持ってくる。
 	m_rotationAngleX = gameCamera["RotationAngleX"];
 	m_rotationAngleY = gameCamera["RotationAngleY"];
+
 
 	//ファイルを閉じる。
 	file.close();
@@ -124,8 +125,16 @@ void GameCamera::CameraMove()
 		m_toCameraPos = toCameraPosOld;
 	}
 
+	static float lastPlayerY = m_player->m_position.y;
+
+	float deltaY = m_player->m_position.y - lastPlayerY;
+	lastPlayerY = m_player->m_position.y;
+
 	//視点を計算する。
 	Vector3 pos = lastTarget + m_toCameraPos;
+
+	//pos.y += 150.0f + deltaY * 0.5f;
+	pos.y += 150.0f;
 
 	//メインカメラに注視点と座標を設定。
 	g_camera3D->SetTarget(lastTarget);

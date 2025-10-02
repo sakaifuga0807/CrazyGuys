@@ -17,6 +17,11 @@
     <ClCompile Include="GameCamera.cpp" />
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="ICharacter.cpp" />
+    <ClCompile Include="Title.cpp" />
+    <ClCompile Include="SelectPlayers.cpp" />
+    <ClCompile Include="Obstacle.cpp" />
+    <ClCompile Include="Goal.cpp" />
+    <ClCompile Include="Result.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -29,5 +34,10 @@
     <ClInclude Include="GameCamera.h" />
     <ClInclude Include="Actor.h" />
     <ClInclude Include="ICharacter.h" />
+    <ClInclude Include="Title.h" />
+    <ClInclude Include="SelectPlayers.h" />
+    <ClInclude Include="Obstacle.h" />
+    <ClInclude Include="Goal.h" />
+    <ClInclude Include="Result.h" />
   </ItemGroup>
 </Project>
