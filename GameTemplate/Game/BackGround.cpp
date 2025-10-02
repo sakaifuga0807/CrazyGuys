@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "BackGround.h"
+#include <cstdio>.
 
 bool BackGround::Start()
 {
@@ -7,10 +8,11 @@ bool BackGround::Start()
 	//PhysicsWorld::GetInstance()->EnableDrawDebugWireFrame();
 
 	//ステージの読み込み。
-	m_modelRender.Init("Assets/stageData/StageBase.tkm");
+	m_modelRender.Init("Assets/stageData/StageMini.tkm");
+
 
 	//静的物理オブジェクトを作成。
-	m_physicsStaticObject.CreateFromModel(m_modelRender.GetModel(), m_modelRender.GetModel().GetWorldMatrix());
+	m_physicsStaticObj.CreateFromModel(m_modelRender.GetModel(), m_modelRender.GetModel().GetWorldMatrix());
 
 	return true;
 }
