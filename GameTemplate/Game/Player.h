@@ -5,6 +5,7 @@
 class Goal;
 class Result;
 class Game;
+class Actor;
 
 class Player:public ICharacter
 {
@@ -33,9 +34,10 @@ public:
 
 	//メンバ変数。
 private:
-	Game* m_game;//ゲーム。
-	Result* m_result;//リザルト。
-	Goal* m_goal;//ゴール。
+	Game* m_game;//ゲームのポインタ。
+	Result* m_result;//リザルトのポインタ。
+	Goal* m_goal;//ゴールのポインタ。
+	Actor* m_actor;//アクターのポインタ。
 	ModelRender m_modelRender;//モデルレンダー。
 	CharacterController m_characterController;//キャラクターコントローラー。
 	FontRender m_fontRender;//フォントレンダー。
@@ -47,8 +49,8 @@ private:
 	float m_characterRadius=0.0f;//キャラコンの半径。
 	float m_characterHeight=0.0f;//キャラコンの高さ。
 	float m_stickMoveSpeed = 0.0f;;//スティックの移動速度。
-	float m_gravity=0.0f;//重力。
-	float m_jumpPower=0.0f;//ジャンプ力。
+	//float m_gravity=0.0f;//重力。
+	//float m_jumpPower=0.0f;//ジャンプ力。
 	float m_diveDuration=0.0f;//ダイブの継続時間。
 	float m_diveTimer=0.0f;//ダイブの時間。
 	float m_diveForwardSpeed=0.0f;//ダイブの前進速度。
@@ -57,5 +59,5 @@ private:
 	bool m_isJumping = false;//ジャンプしているか。
 	bool m_isDiving = false;//ダイブしているか。
 public:
-	Vector3 m_position=Vector3::Zero;//座標。
+	//Vector3 m_position=Vector3::Zero;//座標。
 };

@@ -76,7 +76,7 @@ bool Player::Start()
 
 	//座標をセット。
 	//m_position.Set(pos[0], pos[1], pos[2]);
-	//m_position.Set(209.0f, 3087.0f, -52447);
+	m_position.Set(-82.0f, 108.0f, -38145.0f);
 
 	//キャラコンを初期化。
 	m_characterController.Init(m_characterRadius, m_characterHeight, m_position);
