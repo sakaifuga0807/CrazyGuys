@@ -4,12 +4,13 @@
 class ICharacter :public Actor
 {
 public:
-	bool Start()override;
-	ICharacter();
-	virtual~ICharacter();
-	void Update()=0;
-	void Render(RenderContext& rc)override;
-
+	ICharacter()=default;
+	virtual~ICharacter() {};
+	virtual void Update()=0;//純粋仮想関数。派生先で呼び出さないとコンパイルエラーになる。
+	void Render(RenderContext& rc)override
+	{
+		m_modelRender.Draw(rc);
+	}
 	//プレイヤーのIDを設定する。
 	void SetPlayerID(int id)
 	{
@@ -21,9 +22,6 @@ public:
 	{
 		return m_playerID;
 	}
-	/*//
-	virtual void HandleInput() = 0;
-	virtual void ApplyPhysics() = 0;*/
 
 	//アニメーションの初期化。
 	void InitAnimation(Skeleton& skeleton, AnimationClip* clips, int numClips)
@@ -32,21 +30,18 @@ public:
 	}
 
 	//アニメーションの再生。
-	void PlayrAnimation(int clipNo, float blendTime = 0.1f)
+	void PlayAnimation(int clipNo, float blendTime = 0.1f)
 	{
 		m_animation.Play(clipNo, blendTime);
-		m_currentCllip = clipNo;
+		m_currentClip = clipNo;
 	}
 
 protected:
-	Vector3 m_velocity = Vector3::Zero;
-	int m_playerID = 0;//プレイヤー識別用。
-
-	float m_moveSpeed = 0.0f;
-	float m_jumpPower = 0.0f;
-	float m_gravity = 0.0f;
-
-	Animation m_animation;
-	int m_currentCllip = -1;
+	Animation		m_animation;			//アニメーション。
+	int				m_playerID = 0;			//プレイヤー識別用ID。
+	float			m_moveSpeed = 0.0f;		//移動速度。
+	float			m_jumpPower = 0.0f;		//ジャンプ力。
+	float			m_gravity = 0.0f;		//重力。
+	int				m_currentClip = -1;
 };
 
