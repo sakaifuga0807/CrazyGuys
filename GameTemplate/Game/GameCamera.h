@@ -14,7 +14,7 @@ public:
 
 	//メンバ変数。
 private:
-	Player* m_player;//プレイヤーのポインタ。
+	Player* m_player=nullptr;//プレイヤーのポインタ。
 	Vector3 m_position=Vector3::Zero;//座標。
 	Vector3 m_toCameraPos=Vector3::Zero;//カメラ位置。
 	float m_target_Y=0.0f;//ターゲットY。

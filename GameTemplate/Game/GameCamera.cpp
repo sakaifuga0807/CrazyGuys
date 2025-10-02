@@ -83,8 +83,11 @@ void GameCamera::Update()
 
 void GameCamera::CameraMove()
 {
+	//プレイヤーの座標を取得。
+	Vector3 playerPos = m_player->GetPosition();
+
 	//注視点を計算する。
-	Vector3 target = m_player->m_position;
+	Vector3 target = playerPos;
 	target.y += m_target_Y;
 	target.z += m_target_Z;
 
@@ -115,30 +118,22 @@ void GameCamera::CameraMove()
 	//カメラの回転の上限をチェックする。
 	Vector3 toPosDir = m_toCameraPos;
 	toPosDir.Normalize();
-
-	if (toPosDir.y < m_cameraMin)
-	{
-		m_toCameraPos = toCameraPosOld;
-	}
-	else if (toPosDir.y > m_cameraMax)
+	if (toPosDir.y<m_cameraMin || toPosDir.y>m_cameraMax)
 	{
 		m_toCameraPos = toCameraPosOld;
 	}
 
-	static float lastPlayerY = m_player->m_position.y;
+	//プレイヤーの高さで追従させる。
+	static float lastPlayerY = playerPos.y;
+	float deltaY = playerPos.y - lastPlayerY;
+	lastPlayerY = playerPos.y;
 
-	float deltaY = m_player->m_position.y - lastPlayerY;
-	lastPlayerY = m_player->m_position.y;
-
-	//視点を計算する。
+	//カメラの座標を計算。
 	Vector3 pos = lastTarget + m_toCameraPos;
-
-	//pos.y += 150.0f + deltaY * 0.5f;
-	pos.y += 150.0f;
+	pos.y += 150.0f + deltaY * 0.5f;
 
 	//メインカメラに注視点と座標を設定。
 	g_camera3D->SetTarget(lastTarget);
 	g_camera3D->SetPosition(pos);
-	//カメラの更新。
 	g_camera3D->Update();
 }
