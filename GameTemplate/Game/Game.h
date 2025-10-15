@@ -4,6 +4,7 @@ class BackGround;
 class Player;
 class GameCamera;
 class Goal;
+class Hammer;
 
 
 class Game : public IGameObject
@@ -16,12 +17,14 @@ public:
 	void Render(RenderContext& rc);
 
 private:
-	Player*			m_player;			//プレイヤー。
-	BackGround*		m_backGround;		//ステージ。
-	GameCamera*		m_gameCamera;		//カメラ。
-	Goal*			m_goal;				//ゴール。
+	Player*			m_player=nullptr;			//プレイヤーのポインタ。
+	BackGround*		m_backGround=nullptr;		//ステージのポインタ。
+	GameCamera*		m_gameCamera=nullptr;		//カメラのポインタ。
+	Goal*			m_goal=nullptr;				//ゴールのポインタ。
+	Hammer*			m_hammer=nullptr;			//ハンマーのポインタ。
+	SkyCube*		m_skyCube = nullptr;		//スカイキューブ。
+	Vector3			m_position=Vector3::Zero;	//座標。
 public:
-	SkyCube* m_skyCube;					//スカイキューブ。
-	bool m_isDelete = false;			//削除するか。
+	bool			m_isDelete = false;			//削除するか。
 };
 

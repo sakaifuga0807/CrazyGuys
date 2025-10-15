@@ -226,9 +226,11 @@
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="BackGround.cpp" />
     <ClCompile Include="Goal.cpp" />
+    <ClCompile Include="Hammer.cpp" />
     <ClCompile Include="ICharacter.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameCamera.cpp" />
+    <ClCompile Include="JsonUtility.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="Player.cpp" />
@@ -246,9 +248,11 @@
     <ClInclude Include="Actor.h" />
     <ClInclude Include="BackGround.h" />
     <ClInclude Include="Goal.h" />
+    <ClInclude Include="Hammer.h" />
     <ClInclude Include="ICharacter.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameCamera.h" />
+    <ClInclude Include="JsonUtility.h" />
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Result.h" />
