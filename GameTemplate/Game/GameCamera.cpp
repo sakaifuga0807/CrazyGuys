@@ -1,12 +1,8 @@
 #include "stdafx.h"
-#include <fstream>
-#include <iostream>
-#include "External/nlohmann/json.hpp"
 #include "GameCamera.h"
 #include "Player.h"
 #include "Actor.h"
-
-using json = nlohmann::json;
+#include "JsonUtility.h"
 
 bool GameCamera::Start()
 {
@@ -14,20 +10,16 @@ bool GameCamera::Start()
 	//Jsonファイルの読み込み。
 	///////////////////////////////////////////////////////////////////////////////
 
-	//GameCameraのJsonファイルを読み込む。
-	std::ifstream file{ "Assets/config/GameCamera.json" };
-
-	//ファイルが開けなければスキップ。
-	if (!file.is_open()) 
+	//Jsonデータを格納する変数。
+	json configData;
+	//Jsonファイルを読み込む。
+	if (!JsonUtility::LoadJson("Assets//config/GameCamera.json", configData))
 	{
-		MessageBox(NULL,L"GameCameraのJsonファイルが開けません。", L"エラー", MB_OK);
 		return false;
 	}
 
-	json cameraConfig;
-	file >> cameraConfig;
-
-	auto gameCamera = cameraConfig["GameCamera"];
+	//ノードを取得。
+	auto gameCamera = configData["GameCamera"];
 
 	//座標を持ってくる。
 	auto pos = gameCamera["Position"];
@@ -44,10 +36,6 @@ bool GameCamera::Start()
 	//XとYの回転角度を持ってくる。
 	m_rotationAngleX = gameCamera["RotationAngleX"];
 	m_rotationAngleY = gameCamera["RotationAngleY"];
-
-
-	//ファイルを閉じる。
-	file.close();
 
 	///////////////////////////////////////////////////////////////////////////////
 	//終わり。
