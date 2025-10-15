@@ -2,6 +2,7 @@
 #include "Goal.h"
 #include "Player.h"
 #include "collision/CollisionObject.h"
+#include "JsonUtility.h"
 
 bool Goal::Start()
 {
@@ -10,6 +11,8 @@ bool Goal::Start()
 
 	//インスタンスアドレスを検索。
 	m_player = FindGO<Player>("player");
+
+	
 
 	//コリジョンの作成。
 	CreateCollision();
