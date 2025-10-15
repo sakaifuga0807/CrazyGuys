@@ -1,16 +1,18 @@
 {
   "Player": {
-    "Position": [0.0, 10.0, 0.0],
-    "Scale":[0.6,0.6,0.6],
-    "MoveSpeed": 1.2,
-    "CharacterRadius": 25.0,
-    "CharacterHeight": 25.0,
-    "StickMoveSpeed" : 300,
-    "Gravity":20.0,
-    "JumpPower":550.0,
-    "DiveDuration":1.5,
-    "DiveForwardSpeed":2000.0,
-    "RotationAngle":90.0,
-    "FallGravity":2.5
+   	"Position": [0.0, 1.0, 0.0],
+    	"Scale":[0.6,0.6,0.6],
+    	"MoveSpeed": 1.2,
+    	"CharacterRadius": 25.0,
+    	"CharacterHeight": 25.0,
+    	"StickMoveSpeed" : 300,
+    	"Gravity":20.0,
+    	"JumpPower":550.0,
+    	"DiveDuration":1.5,
+    	"DiveForwardSpeed":2000.0,
+    	"RotationAngle":90.0,
+    	"FallGravity":2.5,
+	"BlowPower":2000.0,
+	"AirResistance":0.95
   }
 }

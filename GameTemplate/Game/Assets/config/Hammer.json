@@ -1,0 +1,7 @@
+{
+  "Hammer": {
+	"Position":[1253.0,1.0,-6430.0],
+	"RotationSpeed":0.3,
+	"CollisionSize":[100.0,50.0,250.0]
+  }
+}
