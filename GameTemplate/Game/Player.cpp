@@ -1,13 +1,10 @@
 #include "stdafx.h"
-#include "External/nlohmann/json.hpp"
-#include <iostream>
-#include <fstream>
 #include "Player.h"
 #include "Goal.h"
 #include "Result.h"
 #include "Game.h"
-
-using json = nlohmann::json;
+#include "Hammer.h"
+#include "JsonUtility.h"
 
 bool Player::Start()
 {
@@ -24,48 +21,44 @@ bool Player::Start()
 
 	///////////////////////////////////////////////////////////////////////////////
 	//Jsonファイルの読み込み。
-	///////////////////////////////////////////////////////////////////////////////
-
-	//Playerのjsonファイルを読み込む。
-	std::ifstream file{ "Assets/config/Player.json" };
-
-	//ファイルが開けない場合処理をスキップ。
-	if (!file.is_open())
-	{
-		MessageBox(NULL, L"PlayerのJsonファイルが開けません。", L"エラー", MB_OK);
-		return false;
-	}
-
+	//////////////////////////////////////////////////////////////////////////////
+	
+	//Jsonデータを格納する変数。
 	json configData;
-	file >> configData;
+	//Jsonファイルを読み込む。
+	if (!JsonUtility::LoadJson("Assets/config/Player.json", configData))
+	{
+		return false;//読み込み失敗したらスキップ。
+	}
 
 	//プレイヤーの値をメンバ変数に格納。
 	auto playerData = configData["Player"];
 
-	//座標を持ってくる。
+	//座標。
 	auto pos = playerData["Position"];
-	//大きさを持ってくる。
+	//大きさ。
 	auto scale = playerData["Scale"];
-	//スティックの移動速度を持ってくる。
+	//スティックの移動速度。
 	m_stickMoveSpeed = playerData["StickMoveSpeed"];
-	//重力を持ってくる。
+	//重力。
 	m_gravity = playerData["Gravity"];
-	//キャラコンのサイズを持ってくる。
+	//キャラコンのサイズ。
 	m_characterRadius = playerData["CharacterRadius"];
 	m_characterHeight = playerData["CharacterHeight"];
-	//ジャンプ力を持ってくる。
+	//ジャンプ力。
 	m_jumpPower = playerData["JumpPower"];
-	//スライディング時間を持ってくる。
+	//スライディング時間。
 	m_diveDuration = playerData["DiveDuration"];
-	//スライディング時の全身スピードを持ってくる。
+	//スライディング時の全身スピード。
 	m_diveForwardSpeed = playerData["DiveForwardSpeed"];
-	//回転角度を持ってくる
+	//回転角度。
 	m_diveRotationAngle = playerData["RotationAngle"];
-	//落下時の重力倍率を持ってくる。
+	//落下時の重力倍率。
 	m_fallGravityScale = playerData["FallGravity"];
-
-	//ファイルを閉じる。
-	file.close();
+	//吹き飛ばす力。
+	m_blowPower = playerData["BlowPower"];
+	//空気抵抗。
+	m_airResistance = playerData["AirResistance"];
 
 	///////////////////////////////////////////////////////////////////////////////
 	//終わり。
@@ -75,8 +68,8 @@ bool Player::Start()
 	m_modelRender.SetScale(scale[0],scale[1],scale[2]);
 
 	//座標をセット。
-	//m_position.Set(pos[0], pos[1], pos[2]);
-	m_position.Set(-82.0f, 108.0f, -38145.0f);
+	m_position.Set(pos[0], pos[1], pos[2]);
+	//m_position.Set(-82.0f, 108.0f, -38145.0f);
 
 	//キャラコンを初期化。
 	m_characterController.Init(m_characterRadius, m_characterHeight, m_position);
@@ -84,6 +77,7 @@ bool Player::Start()
 	//インスタンスアドレスを検索。
 	m_goal = FindGO<Goal>("goal");
 	m_game = FindGO<Game>("game");
+	m_hammer = FindGO<Hammer>("hammer");
 
 	return true;
 }
@@ -109,12 +103,13 @@ void Player::Update()
 	//一定距離落下したら座標ををリセットする。	
 	ResetPosition();
 	//コリジョン処理。
-	Collision();
+	CheckCollision();
+
+
 
 	//今だけ座標を表示。(使わなくなったらけしてねー)
 	wchar_t wcsbuf[256];
 	swprintf_s(wcsbuf, 256, L"Pos: (%f, %f, %f)", m_position.x, m_position.y, m_position.z);
-
 	m_fontRender.SetText(wcsbuf);
 	m_fontRender.SetPosition(Vector3(0.0f, 430.0f, 0.0f));
 }
@@ -122,15 +117,39 @@ void Player::Update()
 //移動処理。
 void Player::Move()
 {
+	if (m_isBlown)
+	{
+		m_position = m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime());
+		m_blowTimer -= g_gameTime->GetFrameDeltaTime();
 
-	// ダイブ中ならスティック移動は無効化
-	if (m_isDiving) {
-		// ダイブの慣性をちょっと減速させても良い
+		//空気抵抗を加える。
+		m_moveSpeed *= m_airResistance;
+		//重力を加える。
+		m_moveSpeed.y -= m_gravity;
+
+		if (m_blowTimer <= 0.0f||m_characterController.IsOnGround())
+		{
+			m_isBlown = false;
+			m_moveSpeed = Vector3::Zero;
+		}
+
+		m_modelRender.SetPosition(m_position);
+		m_modelRender.Update();
+
+		return;
+
+	}
+
+	//ダイブ中ならスティック移動は無効化。
+	if (m_isDiving) 
+	{
+		//ダイブの慣性を少しだけ減衰させる。
 		m_moveSpeed.x *= 0.9f;
 		m_moveSpeed.z *= 0.9f;
 	}
-	else {
-		// スティックの入力量を取得
+	else 
+	{
+		//スティックの入力量を取得。
 		float lStick_x = g_pad[0]->GetLStickXF();
 		float lStick_y = g_pad[0]->GetLStickYF();
 
@@ -140,25 +159,29 @@ void Player::Move()
 		forward.y = 0.0f; forward.Normalize();
 		right.y = 0.0f; right.Normalize();
 
-		if (fabsf(lStick_x) > 0.001f || fabsf(lStick_y) > 0.001f) {
+		if (fabsf(lStick_x) > 0.001f || fabsf(lStick_y) > 0.001f) 
+		{
 			m_moveSpeed.x = (forward.x * lStick_y + right.x * lStick_x) * m_stickMoveSpeed * 2;
 			m_moveSpeed.z = (forward.z * lStick_y + right.z * lStick_x) * m_stickMoveSpeed * 2;
 		}
-		else {
+		else 
+		{
 			m_moveSpeed.x = 0.0f;
 			m_moveSpeed.z = 0.0f;
 		}
 	}
 
-	// キャラコンを実行
 	m_position = m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime());
 
-	if (m_characterController.IsOnGround()) {
+	//地面に付いたら各種リセット。
+	if (m_characterController.IsOnGround()) 
+	{
 		m_moveSpeed.y = 0.0f;
-		m_isDiving = false;   // 地面についたらダイブ終了
+		m_isDiving = false;  
 		m_isJumping = false;
 	}
-	else {
+	else
+	{
 		m_moveSpeed.y -= m_gravity;
 	}
 
@@ -172,10 +195,9 @@ void Player::Jump()
 	//地面についていればジャンプできる。
 	if (g_pad[0]->IsTrigger(enButtonA) && m_characterController.IsOnGround())
 	{
-		//ジャンプのフラグを立てる。
 		m_isJumping = true;
-
 		m_isDiving = false;
+
 		//ジャンプ力を加える。
 		m_moveSpeed.y += m_jumpPower;
 	}
@@ -254,7 +276,7 @@ void Player::ResetPosition()
 	}
 }
 
-void Player::Collision()
+void Player::CheckCollision()
 {
 	//コリジョンの取得。
 	const auto& collisions = g_collisionObjectManager->FindCollisionObjects("Goal");
@@ -266,6 +288,29 @@ void Player::Collision()
 		{
 			NewGO<Result>(0, "result");
 			m_game->m_isDelete = true;
+		}
+	}
+
+	//hammerのコリジョン取得。
+	const auto& HammerCollisions = g_collisionObjectManager->FindCollisionObjects("Hammer");
+	for (auto collision : HammerCollisions)
+	{
+		//コリジョンとキャラが当たったら。
+		if (collision->IsHit(m_characterController))
+		{
+			//前方向を取得して、正規化。
+			Vector3 hammerForward = m_hammer->GetForward();
+			hammerForward.y = 0.0f;
+			hammerForward.Normalize();
+
+			//吹き飛ばす力を移動速度に追加。
+			m_moveSpeed.x = hammerForward.x * m_blowPower;
+			m_moveSpeed.z = hammerForward.z * m_blowPower;
+
+			m_isBlown = true;
+			m_blowTimer = 0.5f;
+
+			return;
 		}
 	}
 }

@@ -8,7 +8,10 @@ public:
 
 	enum  EnSelectPlayer
 	{
-
+		enSolo,
+		enDuo,
+		enTrio,
+		enSpuad
 	};
 
 	bool Start();
@@ -20,5 +23,6 @@ public:
 private:
 	//メンバ変数。
 	//SpriteRender m_spriteRender;//スプライトレンダー。
+	EnSelectPlayer m_enSelectPlayer;//選択したプレイヤー人数。
 };
 
