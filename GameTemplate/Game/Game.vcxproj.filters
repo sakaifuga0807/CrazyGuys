@@ -22,6 +22,8 @@
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="Goal.cpp" />
     <ClCompile Include="Result.cpp" />
+    <ClCompile Include="Hammer.cpp" />
+    <ClCompile Include="JsonUtility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -39,5 +41,7 @@
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="Goal.h" />
     <ClInclude Include="Result.h" />
+    <ClInclude Include="Hammer.h" />
+    <ClInclude Include="JsonUtility.h" />
   </ItemGroup>
 </Project>

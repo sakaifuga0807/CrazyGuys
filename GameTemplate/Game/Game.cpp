@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "GameCamera.h"
 #include "Goal.h"
+#include "Hammer.h"
 
 bool Game::Start()
 {
@@ -15,11 +16,13 @@ bool Game::Start()
 	m_gameCamera = NewGO<GameCamera>(0, "gamecamera");
 	//ゴールの生成。
 	m_goal = NewGO<Goal>(0, "goal");
+	//ハンマーの生成。
+	m_hammer = NewGO<Hammer>(0, "hammer");
+
 	//スカイキューブを作成
 	m_skyCube = NewGO<SkyCube>(0, "skycube");
 	m_skyCube->SetType(enSkyCubeType_DayToon);
 	m_skyCube->SetScale(10000.0f);
-	//m_skyCube->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
 
 	return true;
 }
@@ -35,6 +38,7 @@ Game::~Game()
 	DeleteGO(m_player);
 	DeleteGO(m_gameCamera);
 	DeleteGO(m_goal);
+	DeleteGO(m_hammer);
 	DeleteGO(m_skyCube);
 }
 
