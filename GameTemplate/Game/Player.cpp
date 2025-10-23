@@ -8,16 +8,23 @@
 
 bool Player::Start()
 {
-	//モデルを読み込む。
-	//m_modelRender.Init("Assets/modelData/unityChan.tkm");
-	m_modelRender.Init("Assets/modelData/BulueGuys.tkm");
+	//アニメーション読み込み。
+	m_animationClips[enAnimationClip_Idle].Load("Assets/animData/Idle.tka");
+	m_animationClips[enAnimationClip_Idle].SetLoopFlag(true);
+	m_animationClips[enAnimationClip_Run].Load("Assets/animData/Run.tka");
+	m_animationClips[enAnimationClip_Run].SetLoopFlag(true);
+	m_animationClips[enAnimationClip_Jump].Load("Assets/animData/Jump.tka");
+	m_animationClips[enAnimationClip_Jump].SetLoopFlag(false);
+	m_animationClips[enAnimationClip_Dive].Load("Assets/animData/Dive.tka");
+	m_animationClips[enAnimationClip_Dive].SetLoopFlag(false);
+	m_animationClips[enAnimationClip_Hit].Load("Assets/animData/Hit.tka");
+	m_animationClips[enAnimationClip_Hit].SetLoopFlag(false);
+	m_animationClips[enAnimationClip_Victory].Load("Assets/animData/Victory.tka");
+	m_animationClips[enAnimationClip_Victory].SetLoopFlag(false);
 
-	//AnimationClipの読み込み。
-	/*static AnimationClip clips[4];
-	clips[0].Load("Assets/animData/Idle.tka");
-	clips[1].Load("Assets/animData/Run.tka");
-	clips[2].Load("Assets/animData/Jump.tka");
-	clips[3].Load("Assets/animData/Dive.tka");*/
+	//モデルを読み込む。
+	m_modelRender.Init("Assets/modelData/BulueGuys.tkm");
+	//m_modelRender.Init("Assets/modelData/BulueGuys.tkm", m_animationClips, enAnimationClip_Num);
 
 	///////////////////////////////////////////////////////////////////////////////
 	//Jsonファイルの読み込み。
@@ -31,7 +38,7 @@ bool Player::Start()
 		return false;//読み込み失敗したらスキップ。
 	}
 
-	//プレイヤーの値をメンバ変数に格納。
+	//ノードを取得。
 	auto playerData = configData["Player"];
 
 	//座標。
@@ -68,7 +75,10 @@ bool Player::Start()
 	m_modelRender.SetScale(scale[0],scale[1],scale[2]);
 
 	//座標をセット。
-	m_position.Set(pos[0], pos[1], pos[2]);
+	//m_position.Set(pos[0], pos[1], pos[2]);
+	//シーソー前。
+	m_position.Set(8.769943f, 10.0f, -15939.281250f);
+	//ゴール前。
 	//m_position.Set(-82.0f, 108.0f, -38145.0f);
 
 	//キャラコンを初期化。
@@ -104,8 +114,8 @@ void Player::Update()
 	ResetPosition();
 	//コリジョン処理。
 	CheckCollision();
-
-
+	//アニメーション再生。
+	PlayAnimation();
 
 	//今だけ座標を表示。(使わなくなったらけしてねー)
 	wchar_t wcsbuf[256];
@@ -137,7 +147,6 @@ void Player::Move()
 		m_modelRender.Update();
 
 		return;
-
 	}
 
 	//ダイブ中ならスティック移動は無効化。
@@ -161,11 +170,17 @@ void Player::Move()
 
 		if (fabsf(lStick_x) > 0.001f || fabsf(lStick_y) > 0.001f) 
 		{
+			//ステートを走りに。
+			m_state = enState_Run;
+
 			m_moveSpeed.x = (forward.x * lStick_y + right.x * lStick_x) * m_stickMoveSpeed * 2;
 			m_moveSpeed.z = (forward.z * lStick_y + right.z * lStick_x) * m_stickMoveSpeed * 2;
 		}
 		else 
 		{
+			//ステートを待機に。
+			m_state = enState_Idle;
+			//各値をリセット。
 			m_moveSpeed.x = 0.0f;
 			m_moveSpeed.z = 0.0f;
 		}
@@ -195,16 +210,25 @@ void Player::Jump()
 	//地面についていればジャンプできる。
 	if (g_pad[0]->IsTrigger(enButtonA) && m_characterController.IsOnGround())
 	{
+		//ジャンプ中のフラグを立てる。
 		m_isJumping = true;
+		//ダイブのフラグを立てないようにする。
 		m_isDiving = false;
+
+		//ステートをジャンプにする。
+		m_state = enState_Jump;
 
 		//ジャンプ力を加える。
 		m_moveSpeed.y += m_jumpPower;
 	}
+	//ジャンプ中にもう一度Aボタンを押すとダイブに。
 	else if (m_isJumping && !m_isDiving && g_pad[0]->IsTrigger(enButtonA))
 	{
 		//ダイブのフラグを立てる。
 		m_isDiving = true;
+
+		//ステートをダイブにする。
+		m_state = enState_Dive;
 
 		//上昇しているなら慣性を消して一気に落下させる。
 		if (m_moveSpeed.y > 0)
@@ -261,6 +285,7 @@ void Player::Rotation()
 	m_modelRender.SetRotation(m_rotation);
 }
 
+//座標をリセットする。
 void Player::ResetPosition()
 {
 	if (m_position.y <= -3000.0f)
@@ -276,6 +301,7 @@ void Player::ResetPosition()
 	}
 }
 
+//コリジョンとの当たり判定処理。
 void Player::CheckCollision()
 {
 	//コリジョンの取得。
@@ -298,6 +324,9 @@ void Player::CheckCollision()
 		//コリジョンとキャラが当たったら。
 		if (collision->IsHit(m_characterController))
 		{
+			//ステートをヒットにする。
+			m_state = enState_Hit;
+
 			//前方向を取得して、正規化。
 			Vector3 hammerForward = m_hammer->GetForward();
 			hammerForward.y = 0.0f;
@@ -312,6 +341,45 @@ void Player::CheckCollision()
 
 			return;
 		}
+	}
+}
+
+void Player::PlayAnimation()
+{
+	switch (m_state)
+	{
+		//待機ステートだったら。
+	case enState_Idle:
+		//待機アニメーションを再生。
+		m_modelRender.PlayAnimation(enAnimationClip_Idle);
+		break;
+		//走りステートだったら。
+	case enState_Run:
+		//走るアニメーションを再生。
+		m_modelRender.PlayAnimation(enAnimationClip_Run);
+		break;
+		//ジャンプステートだったら。
+	case enState_Jump:
+		//ジャンプアニメーションを再生。
+		m_modelRender.PlayAnimation(enAnimationClip_Jump);
+		break;
+		//ダイブステートだったら。
+	case enState_Dive:
+		//ダイブアニメーションを再生。
+		m_modelRender.PlayAnimation(enAnimationClip_Dive);
+		break;
+		//ヒットステートだったら。
+	case enState_Hit:
+		//ヒットアニメーションを再生。
+		m_modelRender.PlayAnimation(enAnimationClip_Hit);
+		break;
+		//勝利ステートだったら。
+	case enState_Victory:
+		//勝利アニメーションを再生。
+		m_modelRender.PlayAnimation(enAnimationClip_Victory);
+		break;
+	default:
+		break;
 	}
 }
 
