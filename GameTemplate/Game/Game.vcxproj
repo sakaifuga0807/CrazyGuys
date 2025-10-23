@@ -225,6 +225,7 @@
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="BackGround.cpp" />
+    <ClCompile Include="Barrier.cpp" />
     <ClCompile Include="Goal.cpp" />
     <ClCompile Include="Hammer.cpp" />
     <ClCompile Include="ICharacter.cpp" />
@@ -235,6 +236,7 @@
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Result.cpp" />
+    <ClCompile Include="Seesaw.cpp" />
     <ClCompile Include="SelectPlayers.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -247,6 +249,7 @@
   <ItemGroup>
     <ClInclude Include="Actor.h" />
     <ClInclude Include="BackGround.h" />
+    <ClInclude Include="Barrier.h" />
     <ClInclude Include="Goal.h" />
     <ClInclude Include="Hammer.h" />
     <ClInclude Include="ICharacter.h" />
@@ -256,6 +259,7 @@
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Result.h" />
+    <ClInclude Include="Seesaw.h" />
     <ClInclude Include="SelectPlayers.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h" />

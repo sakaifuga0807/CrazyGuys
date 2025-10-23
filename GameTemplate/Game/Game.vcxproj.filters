@@ -24,6 +24,8 @@
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="Hammer.cpp" />
     <ClCompile Include="JsonUtility.cpp" />
+    <ClCompile Include="Barrier.cpp" />
+    <ClCompile Include="Seesaw.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -43,5 +45,7 @@
     <ClInclude Include="Result.h" />
     <ClInclude Include="Hammer.h" />
     <ClInclude Include="JsonUtility.h" />
+    <ClInclude Include="Barrier.h" />
+    <ClInclude Include="Seesaw.h" />
   </ItemGroup>
 </Project>
