@@ -1,5 +1,5 @@
 /*!
- * @brief	静的オブジェクト。
+ * @brief	動的オブジェクト。
  */
 
 #pragma once
@@ -9,20 +9,20 @@
 
 namespace nsK2EngineLow {
 	/// <summary>
-	/// 静的物理オブジェクト
+	/// 動的物理オブジェクト
 	/// </summary>
-	class PhysicsStaticObject : public Noncopyable {
+	class PhysicsDynamicObject : public Noncopyable {
 	public:
 		/// <summary>
 		/// コンストラクタ
 		/// </summary>
-		PhysicsStaticObject();
+		PhysicsDynamicObject();
 		/// <summary>
 		/// デストラクタ
 		/// </summary>
-		~PhysicsStaticObject();
+		~PhysicsDynamicObject();
 		/// <summary>
-		/// モデルからの静的オブジェクトの作成。
+		/// モデルからの動的オブジェクトの作成。
 		/// </summary>
 		/// <param name="model">モデル</param>
 		/// <param name="worldMatrix">ワールド行列</param>
@@ -57,6 +57,27 @@ namespace nsK2EngineLow {
 			btVector3 btPos;
 			btPos = btVector3(pos.x, pos.y, pos.z);
 			btTrans.setOrigin(btPos);
+		}
+		/// <summary>
+		/// 座標を設定。
+		/// </summary>
+		/// <param name="rot">回転。</param>
+		void SetRotation(const Quaternion& rot)
+		{
+			btRigidBody* body = m_rigidBody.GetBody();
+			if(!body)
+			{
+				return;
+			}
+
+			btTransform btTrans = body->getWorldTransform();
+			btQuaternion btRot(rot.x, rot.y, rot.z, rot.w);
+			btTrans.setRotation(btRot);
+			body->setWorldTransform(btTrans);
+			if (body->getMotionState())
+			{
+				body->getMotionState()->setWorldTransform(btTrans);
+			}
 		}
 	private:
 		MeshCollider m_meshCollider;		//メッシュコライダー。

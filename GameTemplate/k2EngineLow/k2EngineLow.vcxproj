@@ -314,6 +314,7 @@
     <ClCompile Include="math\Matrix.cpp" />
     <ClCompile Include="math\Vector.cpp" />
     <ClCompile Include="online\SyncOnlineTwoPlayerMatchEngine.cpp" />
+    <ClCompile Include="PhysicsDynamicObject.cpp" />
     <ClCompile Include="physics\BoxCollider.cpp" />
     <ClCompile Include="physics\CapsuleCollider.cpp" />
     <ClCompile Include="physics\CharacterController.cpp" />
@@ -405,6 +406,7 @@
     <ClInclude Include="math\Matrix.h" />
     <ClInclude Include="math\Vector.h" />
     <ClInclude Include="online\SyncOnlineTwoPlayerMatchEngine.h" />
+    <ClInclude Include="PhysicsDynamicObject.h" />
     <ClInclude Include="physics\BoxCollider.h" />
     <ClInclude Include="physics\CapsuleCollider.h" />
     <ClInclude Include="physics\CharacterController.h" />
