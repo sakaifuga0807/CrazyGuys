@@ -12,8 +12,6 @@ bool Goal::Start()
 	//インスタンスアドレスを検索。
 	m_player = FindGO<Player>("player");
 
-	
-
 	//コリジョンの作成。
 	CreateCollision();
 
