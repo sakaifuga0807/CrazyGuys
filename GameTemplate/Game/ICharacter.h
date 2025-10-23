@@ -23,19 +23,6 @@ public:
 		return m_playerID;
 	}
 
-	//アニメーションの初期化。
-	void InitAnimation(Skeleton& skeleton, AnimationClip* clips, int numClips)
-	{
-		m_animation.Init(skeleton, clips, numClips);
-	}
-
-	//アニメーションの再生。
-	void PlayAnimation(int clipNo, float blendTime = 0.1f)
-	{
-		m_animation.Play(clipNo, blendTime);
-		m_currentClip = clipNo;
-	}
-
 protected:
 	Animation		m_animation;			//アニメーション。
 	int				m_playerID = 0;			//プレイヤー識別用ID。
