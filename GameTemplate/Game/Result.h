@@ -15,5 +15,7 @@ private:
 	//メンバ変数。
 	Title* m_title;//タイトル。
 	SpriteRender m_spriteRender;//スプライトレンダー。
+private:
+	float m_angle;
 };
 
