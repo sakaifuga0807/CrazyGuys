@@ -7,12 +7,11 @@ bool BackGround::Start()
 	//ステージの読み込み。
 	m_modelRender.Init("Assets/stageData/StageMini.tkm");
 
-
-	//当たり判定を有効にする。
-	//PhysicsWorld::GetInstance()->EnableDrawDebugWireFrame();
-
 	//静的物理オブジェクトを作成。
 	m_physicsStaticObj.CreateFromModel(m_modelRender.GetModel(), m_modelRender.GetModel().GetWorldMatrix());
+
+	//当たり判定を可視化する。
+	//PhysicsWorld::GetInstance()->EnableDrawDebugWireFrame();
 
 	return true;
 }
