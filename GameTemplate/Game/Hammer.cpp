@@ -23,8 +23,6 @@ bool Hammer::Start()
 	//ノードを取得。
 	auto hammerData = configData["Hammer"];
 
-	//座標を取得。
-	auto pos = hammerData["Position"];
 	//コリジョンの大きさを設定。
 	auto size = hammerData["CollisionSize"];
 	//回転速度を取得。
@@ -35,7 +33,6 @@ bool Hammer::Start()
 	///////////////////////////////////////////////////////////////////////////////
 
 	//代入。
-	m_position.Set(pos[0], pos[1], pos[2]);
 	m_collisionSize.Set(size[0], size[1], size[2]);
 
 	//コリジョンを作成。
