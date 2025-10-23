@@ -6,7 +6,7 @@
 bool Title::Start()
 {
 	//スプライトを読み込む。
-	m_spriteRender.Init("Assets/sprite/Black.dds", 1920.0f, 1080.0f);
+	m_spriteRender.Init("Assets/sprite/TitleDemo.dds", 1920.0f, 1080.0f);
 	m_spriteRender.Update();
 
 	return true;
