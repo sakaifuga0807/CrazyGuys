@@ -48,8 +48,8 @@ bool GameCamera::Start()
 	m_player = FindGO<Player>("player");
 
 	//カメラのニアクリップとファークリップを設定。
-	g_camera3D->SetNear(m_nearClip);
-	g_camera3D->SetFar(m_farClip);
+	g_camera3D->SetNear(m_nearClip*2);
+	g_camera3D->SetFar(m_farClip*2);
 
 	return true;
 }

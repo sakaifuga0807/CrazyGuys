@@ -5,7 +5,7 @@ class Player;
 class GameCamera;
 class Goal;
 class Hammer;
-
+class Seesaw;
 
 class Game : public IGameObject
 {
@@ -22,6 +22,7 @@ private:
 	GameCamera*		m_gameCamera=nullptr;		//カメラのポインタ。
 	Goal*			m_goal=nullptr;				//ゴールのポインタ。
 	Hammer*			m_hammer=nullptr;			//ハンマーのポインタ。
+	Seesaw*			m_seesaw = nullptr;			//シーソーのポインタ。
 	SkyCube*		m_skyCube = nullptr;		//スカイキューブ。
 	Vector3			m_position=Vector3::Zero;	//座標。
 public:
