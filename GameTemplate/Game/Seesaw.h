@@ -21,14 +21,19 @@ public:
 	//回転。
 	void Rotation();
 	//プレイヤーが乗っているか判定。
-	void CheckPlayerOn();
+	void UpdateSeesawState();
 	void Render(RenderContext& rc);
 
+	void SetMovingState(enMovingSeesaw state)
+	{
+		m_movingSeesawState = state;
+	}
+
 private:
-	Player* m_player=nullptr;//プレイヤーのポインタ。
-	PhysicsDynamicObject m_physicsDynamicObj;//静的動的オブジェクト。
-	enMovingSeesaw m_movingSeesawState = enUp;//シーソーの傾き状態。
-	float m_angleSpeed = 30.0f;//回転速度。
-	float m_limitAngle = 15.0f;//傾く最大角度。
-	float m_currentAngle = 0.0f;//現在の角度。
+	Player*					m_player=nullptr;					//プレイヤーのポインタ。
+	PhysicsDynamicObject	m_physicsDynamicObj;				//静的動的オブジェクト。
+	enMovingSeesaw			m_movingSeesawState = enUp;			//シーソーの傾き状態。
+	float					m_angleSpeed = 0.0f;				//回転速度。
+	float					m_limitAngle = 0.0f;				//傾く最大角度。
+	float					m_currentAngle = 0.0f;				//現在の角度。
 };
