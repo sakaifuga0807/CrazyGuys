@@ -20,15 +20,13 @@ bool Seesaw::Start()
 
 	//回転速度。
 	m_angleSpeed = seesawData["AngleSpeed"];
+
 	//制限角度。
 	m_limitAngle = seesawData["LimitAngle"];
 
 	m_modelRender.SetPosition(m_position);
 
 	m_physicsDynamicObj.CreateFromModel(m_modelRender.GetModel(), m_modelRender.GetModel().GetWorldMatrix());
-
-	//自動で削除されないようにする。
-	m_collisionObject->SetIsEnableAutoDelete(false);
 
 	m_player = FindGO<Player>("player");
 
@@ -47,11 +45,11 @@ Seesaw::~Seesaw()
 
 void Seesaw::Update()
 {
-	CheckPlayerOn();
+	UpdateSeesawState();
 }
 
 //プレイヤーが乗っているかを確認する関数。
-void Seesaw::CheckPlayerOn()
+void Seesaw::UpdateSeesawState()
 {
 	if (m_movingSeesawState == enUp)
 	{
