@@ -29,7 +29,7 @@ bool Player::Start()
 	///////////////////////////////////////////////////////////////////////////////
 	//Jsonファイルの読み込み。
 	//////////////////////////////////////////////////////////////////////////////
-	
+
 	//Jsonデータを格納する変数。
 	json configData;
 	//Jsonファイルを読み込む。
@@ -72,12 +72,15 @@ bool Player::Start()
 	///////////////////////////////////////////////////////////////////////////////
 
 	//大きさを設定。
-	m_modelRender.SetScale(scale[0],scale[1],scale[2]);
+	m_modelRender.SetScale(scale[0], scale[1], scale[2]);
 
 	//座標をセット。
-	//m_position.Set(pos[0], pos[1], pos[2]);
+	//m_modelRender.SetPosition(m_position);
+	m_position.Set(pos[0], pos[1], pos[2]);
 	//シーソー前。
-	m_position.Set(8.769943f, 10.0f, -15939.281250f);
+	//m_position.Set(8.769943f, 10.0f, -15939.281250f);
+	//回転する奴の前
+	//m_position.Set(-38.5f, 10.0f, -29253.1f);
 	//ゴール前。
 	//m_position.Set(-82.0f, 108.0f, -38145.0f);
 
@@ -116,6 +119,15 @@ void Player::Update()
 	CheckCollision();
 	//アニメーション再生。
 	PlayAnimation();
+	//AIかプレイヤーかで処理を分ける。
+	if (m_isAI)
+	{
+		UpdateAIController();
+	}
+	else
+	{
+		UpdatePlayerController();
+	}
 
 	//今だけ座標を表示。(使わなくなったらけしてねー)
 	wchar_t wcsbuf[256];
@@ -137,7 +149,7 @@ void Player::Move()
 		//重力を加える。
 		m_moveSpeed.y -= m_gravity;
 
-		if (m_blowTimer <= 0.0f||m_characterController.IsOnGround())
+		if (m_blowTimer <= 0.0f || m_characterController.IsOnGround())
 		{
 			m_isBlown = false;
 			m_moveSpeed = Vector3::Zero;
@@ -150,13 +162,13 @@ void Player::Move()
 	}
 
 	//ダイブ中ならスティック移動は無効化。
-	if (m_isDiving) 
+	if (m_isDiving)
 	{
 		//ダイブの慣性を少しだけ減衰させる。
 		m_moveSpeed.x *= 0.9f;
 		m_moveSpeed.z *= 0.9f;
 	}
-	else 
+	else
 	{
 		//スティックの入力量を取得。
 		float lStick_x = g_pad[0]->GetLStickXF();
@@ -168,7 +180,7 @@ void Player::Move()
 		forward.y = 0.0f; forward.Normalize();
 		right.y = 0.0f; right.Normalize();
 
-		if (fabsf(lStick_x) > 0.001f || fabsf(lStick_y) > 0.001f) 
+		if (fabsf(lStick_x) > 0.001f || fabsf(lStick_y) > 0.001f)
 		{
 			//ステートを走りに。
 			m_state = enState_Run;
@@ -176,7 +188,7 @@ void Player::Move()
 			m_moveSpeed.x = (forward.x * lStick_y + right.x * lStick_x) * m_stickMoveSpeed * 2;
 			m_moveSpeed.z = (forward.z * lStick_y + right.z * lStick_x) * m_stickMoveSpeed * 2;
 		}
-		else 
+		else
 		{
 			//ステートを待機に。
 			m_state = enState_Idle;
@@ -189,10 +201,10 @@ void Player::Move()
 	m_position = m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime());
 
 	//地面に付いたら各種リセット。
-	if (m_characterController.IsOnGround()) 
+	if (m_characterController.IsOnGround())
 	{
 		m_moveSpeed.y = 0.0f;
-		m_isDiving = false;  
+		m_isDiving = false;
 		m_isJumping = false;
 	}
 	else
@@ -263,7 +275,7 @@ void Player::Rotation()
 	Vector3 right = g_camera3D->GetRight();
 	forward.y = 0.0f;
 	forward.Normalize();
-	right.y = 0.0f; 
+	right.y = 0.0f;
 	right.Normalize();
 
 	//入力方向。
@@ -381,6 +393,16 @@ void Player::PlayAnimation()
 	default:
 		break;
 	}
+}
+
+void Player::UpdatePlayerController()
+{
+
+}
+
+void Player::UpdateAIController()
+{
+
 }
 
 void Player::Render(RenderContext& rc)
