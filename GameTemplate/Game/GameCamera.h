@@ -12,6 +12,12 @@ public:
 
 	void CameraMove();
 
+	//ターゲットを設定する関数。
+	void SetTarget(Player* target)
+	{
+		m_player = target;
+	}
+
 	//メンバ変数。
 private:
 	Player* m_player=nullptr;//プレイヤーのポインタ。

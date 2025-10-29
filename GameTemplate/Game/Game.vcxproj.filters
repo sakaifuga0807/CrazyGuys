@@ -26,6 +26,7 @@
     <ClCompile Include="JsonUtility.cpp" />
     <ClCompile Include="Barrier.cpp" />
     <ClCompile Include="Seesaw.cpp" />
+    <ClCompile Include="RotationGround.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -47,5 +48,6 @@
     <ClInclude Include="JsonUtility.h" />
     <ClInclude Include="Barrier.h" />
     <ClInclude Include="Seesaw.h" />
+    <ClInclude Include="RotationGround.h" />
   </ItemGroup>
 </Project>
