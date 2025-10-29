@@ -33,6 +33,7 @@ bool Hammer::Start()
 	///////////////////////////////////////////////////////////////////////////////
 
 	//代入。
+	m_modelRender.SetPosition(m_position);
 	m_collisionSize.Set(size[0], size[1], size[2]);
 
 	//コリジョンを作成。
