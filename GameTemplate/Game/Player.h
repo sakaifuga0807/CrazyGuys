@@ -51,9 +51,25 @@ public:
 	void CheckCollision();
 	//アニメーションを再生。
 	void PlayAnimation();
+	//プレイヤーのコントローラー更新。
+	void UpdatePlayerController();
+	//AIコントローラー更新。
+	void UpdateAIController();
 
 	void Render(RenderContext& rc);
 	
+	//AIの設定。
+	void SetIsAI(bool isAI)
+	{
+		m_isAI = isAI;
+	}
+
+	//AIか。
+	bool IsAI() const
+	{
+		return m_isAI;
+	}
+
 private:
 	//メンバ変数。
 	Game*					m_game=nullptr;									//ゲームのポインタ。
@@ -84,4 +100,6 @@ private:
 	bool					m_isJumping = false;							//ジャンプしているか。
 	bool					m_isDiving = false;								//ダイブしているか。
 	bool					m_isBlown = false;								//吹っ飛び中。
+	bool					m_isJumpRequested = false;						//ジャンプができるか。
+	bool					m_isAI = false;									//AIかどうか。
 };
