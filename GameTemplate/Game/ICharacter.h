@@ -29,6 +29,5 @@ protected:
 	float			m_moveSpeed = 0.0f;		//移動速度。
 	float			m_jumpPower = 0.0f;		//ジャンプ力。
 	float			m_gravity = 0.0f;		//重力。
-	int				m_currentClip = -1;
 };
 
