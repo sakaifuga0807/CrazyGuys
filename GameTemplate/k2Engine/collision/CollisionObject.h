@@ -196,14 +196,29 @@ namespace nsK2Engine {
 		{
 			return m_isEnable;
 		}
+		/// <summary>
+		/// 任意のユーザーポインタを設定する（親オブジェクトを紐付ける）
+		/// </summary>
+		void SetUserPointer(void* ptr)
+		{
+			m_userPointer = ptr;
+		}
+		/// <summary>
+		/// 紐付けたユーザーポインタを取得する
+		/// </summary>
+		void* GetUserPointer() const
+		{
+			return m_userPointer;
+		}
 	private:
 		PhysicsGhostObject			m_physicsGhostObject;				//ゴーストオブジェクト。
-		const char* m_name = nullptr;					//名前。
+		const char*					m_name = nullptr;					//名前。
+		void*						m_userPointer = nullptr;			//オブジェクトを紐づけ。	
 		float						m_timer = 0.0f;						//タイマー。
 		float						m_timeLimit = 0.0f;					//削除されるまでの時間。
 		bool						m_isEnableAutoDelete = true;		//自動で削除されるならtrue。
 		bool						m_isEnable = true;					//trueなら当たり判定有効。
-	};
+};
 
 	class CollisionObjectManager
 	{

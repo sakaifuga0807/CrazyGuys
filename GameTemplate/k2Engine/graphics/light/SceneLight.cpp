@@ -58,9 +58,9 @@ namespace nsK2Engine {
         m_light.directionalLight[2].direction.z = 1.0f;
         m_light.directionalLight[2].direction.Normalize();*/
 
-        m_light.ambinetLight.x = 0.1f;
-        m_light.ambinetLight.y = 0.1f;
-        m_light.ambinetLight.z = 0.1f;
+        m_light.ambinetLight.x = 0.5f;
+        m_light.ambinetLight.y = 0.5f;
+        m_light.ambinetLight.z = 0.5f;
         m_light.eyePos = g_camera3D->GetPosition();
         m_light.numPointLight = 0;
 

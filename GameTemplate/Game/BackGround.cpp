@@ -5,7 +5,7 @@
 bool BackGround::Start()
 {
 	//ステージの読み込み。
-	m_modelRender.Init("Assets/stageData/StageMini.tkm");
+	m_modelRender.Init("Assets/stageData/Stage.tkm");
 
 	//静的物理オブジェクトを作成。
 	m_physicsStaticObj.CreateFromModel(m_modelRender.GetModel(), m_modelRender.GetModel().GetWorldMatrix());
@@ -30,7 +30,7 @@ BackGround::~BackGround()
 void BackGround::Update()
 {
 	//モデルを更新。
-	m_modelRender.Update();
+	//m_modelRender.Update();
 }
 
 

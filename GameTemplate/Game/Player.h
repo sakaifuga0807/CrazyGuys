@@ -3,10 +3,11 @@
 #include "ICharacter.h"
 
 class Goal;
-class Result;
 class Game;
 class Actor;
 class Hammer;
+class PlayerControl;
+class AIControl;
 
 class Player:public ICharacter
 {
@@ -40,24 +41,25 @@ public:
 	~Player();
 	void Update();
 	//移動処理。
-	void Move();
+	void Move(const Vector3&moveDir);
 	//ジャンプ処理。
 	void Jump();
 	//回転処理。
-	void Rotation();
+	void Rotation(const Vector3& moveDir);
 	//座標をリセットする。
 	void ResetPosition();
 	//コリジョン。
 	void CheckCollision();
 	//アニメーションを再生。
 	void PlayAnimation();
-	//プレイヤーのコントローラー更新。
-	void UpdatePlayerController();
-	//AIコントローラー更新。
-	void UpdateAIController();
 
 	void Render(RenderContext& rc);
 	
+	void SetControllerIndex(int index)
+	{
+		m_contRollerIndex = index;
+	}
+
 	//AIの設定。
 	void SetIsAI(bool isAI)
 	{
@@ -70,10 +72,25 @@ public:
 		return m_isAI;
 	}
 
+	//
+	CharacterController& GetCharacterController()
+	{
+		return m_characterController;
+	}
+
+	void SetCanMove(bool canMove)
+	{
+		m_canMove = canMove;
+	}
+
+	void SetGame(Game* game)
+	{
+		m_game = game;
+	}
+
 private:
 	//メンバ変数。
 	Game*					m_game=nullptr;									//ゲームのポインタ。
-	Result*					m_result=nullptr;								//リザルトのポインタ。
 	Goal*					m_goal=nullptr;									//ゴールのポインタ。
 	Actor*					m_actor=nullptr;								//アクターのポインタ。
 	Hammer*					m_hammer = nullptr;								//ハンマーのポインタ。
@@ -85,6 +102,7 @@ private:
 	Vector3					m_forward=Vector3::Zero;						//前方向。
 	Vector3					m_moveSpeed = Vector3::Zero;					//移動速度。
 	Vector3					m_direction = Vector3::Zero;					//向き。
+	Vector3					m_moveDir = Vector3::Zero;						//移動方向。
 	const Vector3			m_firstPosition = Vector3::Zero;				//初期位置。
 	float					m_characterRadius=0.0f;							//キャラコンの半径。
 	float					m_characterHeight=0.0f;							//キャラコンの高さ。
@@ -93,7 +111,7 @@ private:
 	float					m_diveTimer=0.0f;								//ダイブの時間。
 	float					m_diveForwardSpeed=0.0f;						//ダイブの前進速度。
 	float					m_diveRotationAngle=0.0f;						//ダイブの回転角度。
-	float					m_fallGravityScale=0.0f;						//落下時の重力倍率。
+	float					m_fallGravity=0.0f;								//落下時の重力。
 	float					m_blowPower = 0.0f;								//吹き飛ばし力。
 	float					m_blowTimer = 0.0f;								//吹き飛ばす時間。
 	float					m_airResistance = 0.0f;							//空気抵抗。
@@ -102,4 +120,10 @@ private:
 	bool					m_isBlown = false;								//吹っ飛び中。
 	bool					m_isJumpRequested = false;						//ジャンプができるか。
 	bool					m_isAI = false;									//AIかどうか。
+	bool					m_canMove = false;								//移動できるか。
+	bool					m_isRespawn = false;							//フェード中かどうか。
+	bool					m_isFalling = false;							//落下中かどうか。
+	int						m_contRollerIndex = 0;							//コントローラーの数。
+	std::unique_ptr<PlayerControl>	m_playerControl;
+	std::unique_ptr<AIControl>		m_aiControl;
 };

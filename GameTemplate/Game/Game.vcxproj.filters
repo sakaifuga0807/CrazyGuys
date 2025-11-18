@@ -18,7 +18,6 @@
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="ICharacter.cpp" />
     <ClCompile Include="Title.cpp" />
-    <ClCompile Include="SelectPlayers.cpp" />
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="Goal.cpp" />
     <ClCompile Include="Result.cpp" />
@@ -27,6 +26,12 @@
     <ClCompile Include="Barrier.cpp" />
     <ClCompile Include="Seesaw.cpp" />
     <ClCompile Include="RotationGround.cpp" />
+    <ClCompile Include="PlayerControl.cpp" />
+    <ClCompile Include="AIControl.cpp" />
+    <ClCompile Include="CountdownManager.cpp" />
+    <ClCompile Include="GameSettings.cpp" />
+    <ClCompile Include="FadeManager.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -40,7 +45,6 @@
     <ClInclude Include="Actor.h" />
     <ClInclude Include="ICharacter.h" />
     <ClInclude Include="Title.h" />
-    <ClInclude Include="SelectPlayers.h" />
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="Goal.h" />
     <ClInclude Include="Result.h" />
@@ -49,5 +53,15 @@
     <ClInclude Include="Barrier.h" />
     <ClInclude Include="Seesaw.h" />
     <ClInclude Include="RotationGround.h" />
+    <ClInclude Include="PlayerControl.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="AIControl.h" />
+    <ClInclude Include="CountdownManager.h" />
+    <ClInclude Include="GameSettings.h" />
+    <ClInclude Include="FadeManager.h" />
+    <ClInclude Include="SoundManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Game.rc" />
   </ItemGroup>
 </Project>

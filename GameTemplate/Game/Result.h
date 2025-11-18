@@ -17,5 +17,6 @@ private:
 	SpriteRender m_spriteRender;//スプライトレンダー。
 private:
 	float m_angle;
+	bool m_isEnd = false;
 };
 
