@@ -2,7 +2,7 @@
   "GameCamera": {
 	"Position":[0.0,100.0,400.0],
     	"NearClip":1.0,
-    	"FarClip":20000.0,
+    	"FarClip":200000.0,
     	"CameraTargetOffSetY":100.0,
     	"CameraTargetOffSetZ":30.0,
     	"RotationAngleX":2.1,
