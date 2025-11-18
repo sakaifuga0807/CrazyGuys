@@ -1,0 +1,20 @@
+{
+  "CountdownManager": {
+    "Sprites": [
+      "Assets/ui/count3.dds",
+      "Assets/ui/count2.dds",
+      "Assets/ui/count1.dds",
+      "Assets/ui/go.dds"
+    ],
+
+    "SpriteSize": [580.0, 720.0],
+    "Position": [0.0, 0.0, 0.0],
+    "Scale": [1.0, 1.0, 1.0],
+
+    "StartTimer": 4.0,
+    "DisplayDuration": 1.0,
+    "StartRotationTime": 0.7,
+    "RotationSpeed": 360.0,
+    "ScaleShrinkRate": 0.5
+  }
+}

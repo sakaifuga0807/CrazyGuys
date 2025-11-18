@@ -1,0 +1,95 @@
+{
+  "Sounds": [
+    {
+      "ID": 1,
+      "Name": "MainMenu",
+      "Path": "Assets/sounds/MainMenu.wav",
+      "Volume": 0.5,
+      "Loop": true
+    },
+    {
+      "ID": 2,
+      "Name": "Enter",
+      "Path": "Assets/sounds/Enter.wav",
+      "Volume": 1.0,
+      "Loop": false
+    },
+    {
+      "ID": 3,
+      "Name": "GameBGM",
+      "Path": "Assets/sounds/GameBGM.wav",
+      "Volume": 0.1,
+      "Loop": true
+    },
+    {
+      "ID": 4,
+      "Name": "Countdown3",
+      "Path": "Assets/sounds/Countdown3.wav",
+      "Volume": 0.5,
+      "Loop": false
+    },
+    {
+      "ID": 5,
+      "Name": "Countdown2",
+      "Path": "Assets/sounds/Countdown2.wav",
+      "Volume": 0.5,
+      "Loop": false
+    },
+    {
+      "ID": 6,
+      "Name": "Countdown1",
+      "Path": "Assets/sounds/Countdown1.wav",
+      "Volume": 0.5,
+      "Loop": false
+    },
+    {
+      "ID": 7,
+      "Name": "CountdownGO",
+      "Path": "Assets/sounds/CountdownGO.wav",
+      "Volume": 0.5,
+      "Loop": false
+    },
+    {
+      "ID": 8,
+      "Name": "Jump",
+      "Path": "Assets/sounds/Jump.wav",
+      "Volume": 0.6,
+      "Loop": false
+    },
+    {
+      "ID": 9,
+      "Name": "Respawn",
+      "Path": "Assets/sounds/Respawn.wav",
+      "Volume": 0.5,
+      "Loop": false
+    },
+    {
+      "ID": 10,
+      "Name": "Fall",
+      "Path": "Assets/sounds/Fall.wav",
+      "Volume": 0.5,
+      "Loop": false
+    },
+    {
+      "ID": 11,
+      "Name": "HammerHIT",
+      "Path": "Assets/sounds/HammerHIT.wav",
+      "Volume": 0.5,
+      "Loop": false
+    },
+    {
+      "ID": 12,
+      "Name": "Win",
+      "Path": "Assets/sounds/Win.wav",
+      "Volume": 0.5,
+      "Loop": false
+    },
+    {
+      "ID": 13,
+      "Name": "Result",
+      "Path": "Assets/sounds/Result.wav",
+      "Volume": 0.2,
+      "Loop": false
+    }
+  ]
+}
