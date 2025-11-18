@@ -44,9 +44,6 @@ bool GameCamera::Start()
 	//注視点から視点までのベクトルを設定。
 	m_toCameraPos.Set(pos[0], pos[1], pos[2]);
 
-	//プレイヤーのインスタンスを探す。
-	m_player = FindGO<Player>("player");
-
 	//カメラのニアクリップとファークリップを設定。
 	g_camera3D->SetNear(m_nearClip*2);
 	g_camera3D->SetFar(m_farClip*2);

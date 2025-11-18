@@ -82,6 +82,9 @@ void Hammer::CreateCollision()
 	m_collisionObject->CreateBox(m_position, m_rotation, m_collisionSize);
 	m_collisionObject->SetIsEnableAutoDelete(false);
 	m_collisionObject->SetName("Hammer");
+
+	//ハンマー自身を紐づける。
+	m_collisionObject->SetUserPointer(this);
 }
 
 void Hammer::Render(RenderContext& rc)

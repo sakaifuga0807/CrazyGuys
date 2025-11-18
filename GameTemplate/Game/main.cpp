@@ -37,6 +37,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	//Gameクラスのオブジェクトを作成。
 	//NewGO<Game>(0, "game");
 
+	//トーンマップを無効化。
+	g_renderingEngine->DisableTonemap();
+
 	//Titleクラスのオブジェクトを作成。
 	NewGO<Title>(0, "title");
 

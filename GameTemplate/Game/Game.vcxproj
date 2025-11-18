@@ -224,8 +224,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="AIControl.cpp" />
     <ClCompile Include="BackGround.cpp" />
     <ClCompile Include="Barrier.cpp" />
+    <ClCompile Include="CountdownManager.cpp" />
+    <ClCompile Include="FadeManager.cpp" />
+    <ClCompile Include="GameSettings.cpp" />
     <ClCompile Include="Goal.cpp" />
     <ClCompile Include="Hammer.cpp" />
     <ClCompile Include="ICharacter.cpp" />
@@ -235,10 +239,11 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PlayerControl.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="RotationGround.cpp" />
     <ClCompile Include="Seesaw.cpp" />
-    <ClCompile Include="SelectPlayers.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -249,8 +254,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
+    <ClInclude Include="AIControl.h" />
     <ClInclude Include="BackGround.h" />
     <ClInclude Include="Barrier.h" />
+    <ClInclude Include="CountdownManager.h" />
+    <ClInclude Include="FadeManager.h" />
+    <ClInclude Include="GameSettings.h" />
     <ClInclude Include="Goal.h" />
     <ClInclude Include="Hammer.h" />
     <ClInclude Include="ICharacter.h" />
@@ -259,13 +268,18 @@
     <ClInclude Include="JsonUtility.h" />
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="PlayerControl.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="RotationGround.h" />
     <ClInclude Include="Seesaw.h" />
-    <ClInclude Include="SelectPlayers.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h" />
     <ClInclude Include="Title.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Game.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

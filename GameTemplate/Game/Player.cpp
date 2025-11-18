@@ -1,10 +1,13 @@
 #include "stdafx.h"
 #include "Player.h"
 #include "Goal.h"
-#include "Result.h"
 #include "Game.h"
 #include "Hammer.h"
+#include "PlayerControl.h"
+#include "FadeManager.h"
+#include "AIControl.h"
 #include "JsonUtility.h"
+#include "SoundManager.h"
 
 bool Player::Start()
 {
@@ -23,8 +26,11 @@ bool Player::Start()
 	m_animationClips[enAnimationClip_Victory].SetLoopFlag(false);
 
 	//モデルを読み込む。
-	m_modelRender.Init("Assets/modelData/BulueGuys.tkm");
-	//m_modelRender.Init("Assets/modelData/BulueGuys.tkm", m_animationClips, enAnimationClip_Num);
+	//m_modelRender.Init("Assets/modelData/BulueGuys.tkm");
+	m_modelRender.Init("Assets/modelData/a.tkm", m_animationClips, enAnimationClip_Num);
+
+	//音を読み込む。
+	SoundManager::Get().LoadFromJson("Assets/config/Sound.json");
 
 	///////////////////////////////////////////////////////////////////////////////
 	//Jsonファイルの読み込み。
@@ -61,7 +67,7 @@ bool Player::Start()
 	//回転角度。
 	m_diveRotationAngle = playerData["RotationAngle"];
 	//落下時の重力倍率。
-	m_fallGravityScale = playerData["FallGravity"];
+	m_fallGravity = playerData["FallGravity"];
 	//吹き飛ばす力。
 	m_blowPower = playerData["BlowPower"];
 	//空気抵抗。
@@ -74,23 +80,26 @@ bool Player::Start()
 	//大きさを設定。
 	m_modelRender.SetScale(scale[0], scale[1], scale[2]);
 
+	m_rotation = Quaternion::Identity;
+	m_modelRender.SetRotation(m_rotation);
+
 	//座標をセット。
-	//m_modelRender.SetPosition(m_position);
-	m_position.Set(pos[0], pos[1], pos[2]);
-	//シーソー前。
-	//m_position.Set(8.769943f, 10.0f, -15939.281250f);
-	//回転する奴の前
-	//m_position.Set(-38.5f, 10.0f, -29253.1f);
-	//ゴール前。
-	//m_position.Set(-82.0f, 108.0f, -38145.0f);
+	//m_position.Set(pos[0], pos[1], pos[2]);
 
 	//キャラコンを初期化。
 	m_characterController.Init(m_characterRadius, m_characterHeight, m_position);
 
 	//インスタンスアドレスを検索。
 	m_goal = FindGO<Goal>("goal");
-	m_game = FindGO<Game>("game");
-	m_hammer = FindGO<Hammer>("hammer");
+
+	if (m_isAI)
+	{
+		m_aiControl = std::make_unique<AIControl>(this);
+	}
+	else
+	{
+		m_playerControl = std::make_unique<PlayerControl>(this);
+	}
 
 	return true;
 }
@@ -107,37 +116,46 @@ Player::~Player()
 
 void Player::Update()
 {
+	m_modelRender.Update();
+	m_modelRender.SetPosition(m_position);
+
+	//カウントダウン中は動かさない。
+	if (!m_canMove)
+	{
+		return;
+	}
+
+	if (m_playerControl)
+	{
+		m_playerControl->Update();
+		m_moveDir = m_playerControl->GetMoveDir();
+		m_isJumpRequested = m_playerControl->IsJumpRequested();
+	}
+	else if (m_aiControl)
+	{
+		m_aiControl->Update();
+		m_moveDir = m_aiControl->GetMoveDir();
+		m_isJumpRequested = m_aiControl->IsJumpRequested();
+	}
+
 	//移動処理。
-	Move();
+	Move(m_moveDir);
 	//ジャンプ処理。
 	Jump();
 	//回転処理。
-	Rotation();
+	Rotation(m_moveDir);
 	//一定距離落下したら座標ををリセットする。	
 	ResetPosition();
 	//コリジョン処理。
 	CheckCollision();
 	//アニメーション再生。
 	PlayAnimation();
-	//AIかプレイヤーかで処理を分ける。
-	if (m_isAI)
-	{
-		UpdateAIController();
-	}
-	else
-	{
-		UpdatePlayerController();
-	}
 
-	//今だけ座標を表示。(使わなくなったらけしてねー)
-	wchar_t wcsbuf[256];
-	swprintf_s(wcsbuf, 256, L"Pos: (%f, %f, %f)", m_position.x, m_position.y, m_position.z);
-	m_fontRender.SetText(wcsbuf);
-	m_fontRender.SetPosition(Vector3(0.0f, 430.0f, 0.0f));
+	m_modelRender.SetPosition(m_position);
 }
 
 //移動処理。
-void Player::Move()
+void Player::Move(const Vector3& moveDir)
 {
 	if (m_isBlown)
 	{
@@ -157,59 +175,54 @@ void Player::Move()
 
 		m_modelRender.SetPosition(m_position);
 		m_modelRender.Update();
-
 		return;
 	}
 
-	//ダイブ中ならスティック移動は無効化。
-	if (m_isDiving)
+	if (!m_isDiving)
 	{
-		//ダイブの慣性を少しだけ減衰させる。
-		m_moveSpeed.x *= 0.9f;
-		m_moveSpeed.z *= 0.9f;
-	}
-	else
-	{
-		//スティックの入力量を取得。
-		float lStick_x = g_pad[0]->GetLStickXF();
-		float lStick_y = g_pad[0]->GetLStickYF();
-
-		Vector3 forward = g_camera3D->GetForward();
-		Vector3 right = g_camera3D->GetRight();
-
-		forward.y = 0.0f; forward.Normalize();
-		right.y = 0.0f; right.Normalize();
-
-		if (fabsf(lStick_x) > 0.001f || fabsf(lStick_y) > 0.001f)
+		if (moveDir.LengthSq() > 0.01f)
 		{
-			//ステートを走りに。
 			m_state = enState_Run;
-
-			m_moveSpeed.x = (forward.x * lStick_y + right.x * lStick_x) * m_stickMoveSpeed * 2;
-			m_moveSpeed.z = (forward.z * lStick_y + right.z * lStick_x) * m_stickMoveSpeed * 2;
+			m_moveSpeed.x = moveDir.x * m_stickMoveSpeed;
+			m_moveSpeed.z = moveDir.z * m_stickMoveSpeed;
 		}
 		else
 		{
-			//ステートを待機に。
 			m_state = enState_Idle;
-			//各値をリセット。
 			m_moveSpeed.x = 0.0f;
 			m_moveSpeed.z = 0.0f;
 		}
 	}
+	else
+	{
+		//ダイブ中は入力を受け付けない。
+		m_diveTimer -= g_gameTime->GetFrameDeltaTime();
 
+		//徐々に速度を減衰。
+		m_moveSpeed.x *= 0.98;
+		m_moveSpeed.z *= 0.98;
+
+		//ダイブ時間が終わったらダイブ終了。
+		if (m_diveTimer <= 0.0f || m_characterController.IsOnGround())
+		{
+			m_isDiving = false;
+		}
+	}
+
+	//重力を発生させる。
+	if (!m_characterController.IsOnGround())
+	{
+		m_moveSpeed.y -= m_gravity;
+	}
+
+	//キャラコンでキャラクターを移動させる。
 	m_position = m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime());
 
-	//地面に付いたら各種リセット。
+	//地面に付いていたら。
 	if (m_characterController.IsOnGround())
 	{
 		m_moveSpeed.y = 0.0f;
-		m_isDiving = false;
 		m_isJumping = false;
-	}
-	else
-	{
-		m_moveSpeed.y -= m_gravity;
 	}
 
 	m_modelRender.SetPosition(m_position);
@@ -220,33 +233,43 @@ void Player::Move()
 void Player::Jump()
 {
 	//地面についていればジャンプできる。
-	if (g_pad[0]->IsTrigger(enButtonA) && m_characterController.IsOnGround())
+	if (m_isJumpRequested && m_characterController.IsOnGround())
 	{
+		//フラグを戻す。
+		m_isJumpRequested = false;
 		//ジャンプ中のフラグを立てる。
 		m_isJumping = true;
 		//ダイブのフラグを立てないようにする。
 		m_isDiving = false;
 
+
+		if (!m_isAI)
+		{
+			//音を再生。
+			SoundManager::Get().Play("Jump");
+		}
+
 		//ステートをジャンプにする。
 		m_state = enState_Jump;
-
 		//ジャンプ力を加える。
-		m_moveSpeed.y += m_jumpPower;
+		m_moveSpeed.y = m_jumpPower;
+
+		return;
 	}
 	//ジャンプ中にもう一度Aボタンを押すとダイブに。
-	else if (m_isJumping && !m_isDiving && g_pad[0]->IsTrigger(enButtonA))
+	else if (m_isJumping && !m_isDiving && m_isJumpRequested)
 	{
+		//フラグを戻す。
+		m_isJumpRequested = false;
 		//ダイブのフラグを立てる。
 		m_isDiving = true;
 
+
+		//ダイブ継続時間を設定。
+		m_diveTimer = m_diveDuration;
+
 		//ステートをダイブにする。
 		m_state = enState_Dive;
-
-		//上昇しているなら慣性を消して一気に落下させる。
-		if (m_moveSpeed.y > 0)
-		{
-			m_moveSpeed.y = 0;
-		}
 
 		Vector3 forward = m_forward;
 		forward.y = 0.0f;
@@ -254,62 +277,117 @@ void Player::Jump()
 
 		m_moveSpeed.x = forward.x * m_diveForwardSpeed;
 		m_moveSpeed.z = forward.z * m_diveForwardSpeed;
-		m_moveSpeed.y = -m_gravity * m_fallGravityScale * m_fallGravityScale;
+
+		//上昇中なら上方向の速度をリセット。
+		if (m_moveSpeed.y > 0.0f)
+		{
+			m_moveSpeed.y = 0.0f;
+		}
 	}
 }
 
 //回転処理。
-void Player::Rotation()
+void Player::Rotation(const Vector3& moveDir)
 {
-	float stickX = g_pad[0]->GetLStickXF();
-	float stickY = g_pad[0]->GetLStickYF();
-
-	//スティックの入力がなければスキップ。
-	if (fabsf(stickX) < 0.001 && fabsf(stickY) < 0.001)
+	if (moveDir.LengthSq() < 0.001f)
 	{
 		return;
 	}
 
-	//カメラを基準に方向を決める
-	Vector3 forward = g_camera3D->GetForward();
-	Vector3 right = g_camera3D->GetRight();
-	forward.y = 0.0f;
-	forward.Normalize();
-	right.y = 0.0f;
-	right.Normalize();
-
-	//入力方向。
-	Vector3 dir = forward * stickY + right * stickX;
-	dir.Normalize();
-
-	m_forward = dir;
-
-	float angle = atan2(dir.x, dir.z);
+	m_forward = moveDir;
+	float angle = atan2(moveDir.x, moveDir.z);
 
 	//回転をQuaternionに変換。
 	Quaternion targetRot;
 	targetRot.SetRotationY(angle);
-
-	//スムーズに補完。
+	//スムーズに回転できるように補完する。
 	m_rotation.Slerp(0.1f, m_rotation, targetRot);
-
-	//回転を設定する。
+	//回転を適用。
 	m_modelRender.SetRotation(m_rotation);
 }
 
 //座標をリセットする。
 void Player::ResetPosition()
 {
+	//AIが落ちた場合はフェードさせない。
+	if (m_isAI)
+	{
+		if (m_position.y <= -3000.0f)
+		{
+			m_position = m_firstPosition;
+			m_characterController.SetPosition(m_firstPosition);
+			m_moveSpeed = Vector3::Zero;
+			m_isJumping = false;
+			m_isDiving = false;
+		}
+		return;
+	}
+
+	auto* Fade = FadeManager::GetInstance();
+	//フェード中はキャラを動かさない。
+	if (m_isRespawn)
+	{
+		//フェードが終わっていたらフラグを戻す。
+		if (Fade&&!Fade->IsFadeing())
+		{
+			m_isRespawn = false;
+		}
+		//フェード中なら抜ける。
+		if (m_isRespawn)
+		{
+			return;
+		}
+	}
+
+	//落下し始めたら落下音を鳴らす。
+	if (m_moveSpeed.y <= -1000.0f)
+	{
+		if (!m_isFalling)
+		{
+			if (!m_isAI)
+			{
+				SoundManager::Get().Play("Fall");
+			}
+			m_isFalling = true;
+
+		}
+	}
+
+
 	if (m_position.y <= -3000.0f)
 	{
-		//最初の位置に戻す。
-		m_position = m_firstPosition;
-		//キャラコンも最初の位置に戻す。
-		m_characterController.SetPosition(m_position);
+		m_isRespawn = true;
 
-		//状態フラグもリセットしておく。
-		m_isJumping = false;
-		m_isDiving = false;
+		//フェードアウト。
+		FadeManager::GetInstance()->StartFadeOut(1.0f, [this]() 
+		{
+			//最初の位置に戻す。
+			m_position = m_firstPosition;
+			//キャラコンも最初の位置に戻す。
+			m_characterController.SetPosition(m_firstPosition);
+
+			//フラグもリセット。
+			m_isJumping = false;
+			m_isDiving = false;
+
+			m_modelRender.SetPosition(m_firstPosition);
+			m_modelRender.Update();
+
+			if (!m_isAI)
+			{
+				SoundManager::Get().Play("Respawn");
+			}
+
+			//落下音を止める。
+			m_isFalling = false;
+
+			//フェードイン。
+			FadeManager::GetInstance()->StartFadeIn(1.0f, [this]()
+			{
+				//フェードイン解除。
+				m_isRespawn = false;
+			});
+		});
 	}
 }
 
@@ -324,8 +402,13 @@ void Player::CheckCollision()
 		//コリジョンとキャラが当たったら。
 		if (collision->IsHit(m_characterController))
 		{
-			NewGO<Result>(0, "result");
-			m_game->m_isDelete = true;
+			if (m_game)
+			{
+				SoundManager::Get().Play("Win");
+				m_game->OnPlayerGoal();
+			}
+
+			return;
 		}
 	}
 
@@ -333,14 +416,29 @@ void Player::CheckCollision()
 	const auto& HammerCollisions = g_collisionObjectManager->FindCollisionObjects("Hammer");
 	for (auto collision : HammerCollisions)
 	{
+		if (!collision)
+		{
+			continue;
+		}
+
 		//コリジョンとキャラが当たったら。
 		if (collision->IsHit(m_characterController))
 		{
-			//ステートをヒットにする。
-			m_state = enState_Hit;
+			Hammer* hammer = static_cast<Hammer*>(collision->GetUserPointer());
+			if (!hammer)
+			{
+				continue;
+			}
+			
+			//AIだったら音を鳴らさない。
+			if (!m_isAI)
+			{
+				//音を再生。
+				SoundManager::Get().Play("HammerHIT");
+			}
 
 			//前方向を取得して、正規化。
-			Vector3 hammerForward = m_hammer->GetForward();
+			Vector3 hammerForward = hammer->GetForward();
 			hammerForward.y = 0.0f;
 			hammerForward.Normalize();
 
@@ -348,6 +446,8 @@ void Player::CheckCollision()
 			m_moveSpeed.x = hammerForward.x * m_blowPower;
 			m_moveSpeed.z = hammerForward.z * m_blowPower;
 
+			//ステートをヒットにする。
+			m_state = enState_Hit;
 			m_isBlown = true;
 			m_blowTimer = 0.5f;
 
@@ -393,16 +493,6 @@ void Player::PlayAnimation()
 	default:
 		break;
 	}
-}
-
-void Player::UpdatePlayerController()
-{
-
-}
-
-void Player::UpdateAIController()
-{
-
 }
 
 void Player::Render(RenderContext& rc)
