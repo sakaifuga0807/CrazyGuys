@@ -2,8 +2,8 @@
   "Game": {
 	"SkyCubePosition":[0.2,0.0,-18475.9],
 	"SkyCubeScale":3800.0,
-	"SkyCubeLuminance":0.5,
+	"SkyCubeLuminance":0.7,
 	"SpritePosition":[-770.0,410.0,0.0],
-	"FontPosition":[-910.0,440.0,0.0]
+	"FontPosition":[-960.0,440.0,0.0]
   }
 }
