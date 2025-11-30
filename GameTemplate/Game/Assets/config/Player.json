@@ -4,14 +4,14 @@
     	"Scale":[0.6,0.6,0.6],
     	"MoveSpeed": 1.2,
     	"CharacterRadius": 25.0,
-    	"CharacterHeight": 25.0,
+    	"CharacterHeight": 45.0,
     	"StickMoveSpeed" : 600,
     	"Gravity":20.0,
     	"JumpPower":550.0,
     	"DiveDuration":1.5,
-    	"DiveForwardSpeed":1000.0,
+    	"DiveForwardSpeed":1250.0,
     	"RotationAngle":90.0,
-    	"FallGravity":2.5,
+    	"FallGravity":1.2,
 	"BlowPower":2000.0,
 	"AirResistance":0.95
   }

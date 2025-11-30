@@ -18,7 +18,7 @@
       "ID": 3,
       "Name": "GameBGM",
       "Path": "Assets/sounds/GameBGM.wav",
-      "Volume": 0.1,
+      "Volume": 0.3,
       "Loop": true
     },
     {
@@ -88,8 +88,8 @@
       "ID": 13,
       "Name": "Result",
       "Path": "Assets/sounds/Result.wav",
-      "Volume": 0.2,
-      "Loop": false
+      "Volume": 0.1,
+      "Loop": true
     }
   ]
 }

@@ -1,13 +1,20 @@
 {
   "GameCamera": {
-	"Position":[0.0,100.0,400.0],
-    	"NearClip":1.0,
-    	"FarClip":200000.0,
-    	"CameraTargetOffSetY":100.0,
-    	"CameraTargetOffSetZ":30.0,
-    	"RotationAngleX":2.1,
-    	"RotationAngleY":1.8,
-    	"CameraMax":0.99,
-    	"CameraMin":-0.2
+    "Position": [0.0, 100.0, 400.0],
+    "NearClip": 1.0,
+    "FarClip": 28500.0,
+    "CameraTargetOffSetY": 100.0,
+    "CameraTargetOffSetZ": 30.0,
+    "RotationAngleX": 2.1,
+    "RotationAngleY": 1.8,
+    "CameraMax": 0.99,
+    "CameraMin": -0.2,
+
+    "DemoCamera": {
+      "StartPosition": [-129.3, 2000.0, -38711.8],
+      "EndPosition": [0.0, 1000.0, 0.0],
+      "Target": [0.0, 0.0, 0.0],
+      "MoveDuration": 7.0
+    }
   }
 }
