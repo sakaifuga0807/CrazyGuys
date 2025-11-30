@@ -20,7 +20,6 @@ public:
 	void Update()override;
 	//回転。
 	void Rotation();
-	//プレイヤーが乗っているか判定。
 	void UpdateSeesawState();
 	void Render(RenderContext& rc);
 

@@ -6,6 +6,9 @@
 
 bool Title::Start()
 {
+	//BGMを強制的に止める。
+	SoundManager::Get().StopBGM();
+
 	//スプライトを読み込む。
 	m_spriteRender.Init("Assets/sprite/Title.dds", 1920.0f, 1080.0f);
 	m_spriteRender.Update();

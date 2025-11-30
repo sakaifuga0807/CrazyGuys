@@ -18,7 +18,9 @@ public:
 	{
 		enState_Idle,
 		enState_Run,
-		enState_Jump,
+		enState_JumpStart,
+		enState_JumpAir,
+		enState_JumpEnd,
 		enState_Dive,
 		enState_Hit,
 		enState_Victory
@@ -29,7 +31,9 @@ public:
 	{
 		enAnimationClip_Idle,
 		enAnimationClip_Run,
-		enAnimationClip_Jump,
+		enAnimationClip_JumpStart,
+		enAnimationClip_JumpAir,
+		enAnimationClip_JumpEnd,
 		enAnimationClip_Dive,
 		enAnimationClip_Hit,
 		enAnimationClip_Victory,
@@ -55,6 +59,7 @@ public:
 
 	void Render(RenderContext& rc);
 	
+	//インデックスの設定。
 	void SetControllerIndex(int index)
 	{
 		m_contRollerIndex = index;
@@ -72,22 +77,48 @@ public:
 		return m_isAI;
 	}
 
-	//
+	//キャラクターコントローラーの取得。
 	CharacterController& GetCharacterController()
 	{
 		return m_characterController;
 	}
 
+	//ゴールの取得。
 	void SetCanMove(bool canMove)
 	{
 		m_canMove = canMove;
 	}
 
+	//ゴールの設定。
 	void SetGame(Game* game)
 	{
 		m_game = game;
 	}
 
+	//モデルのパスの設定。
+	void SetModelPath(const std::string& path)
+	{
+		m_modelPath = path;
+	}
+
+	const char*GetModelPath() const
+	{
+		return m_modelPath.c_str();
+	}
+
+	//アニメーションの再生。
+	void PlayerAnimationClip(int clipIndex, float blendTime);
+	//アニメーションが終了したか。
+	bool IsAnimationFinished() const;
+
+	//アニメーションの再生時間を取得。
+	float GetAnimationDuration(int clipIndex)
+	{
+		const auto& KeyFrames = m_animationClips[clipIndex].GetTopBoneKeyFrameList();
+		if (KeyFrames.empty()) return 0.0f;
+		return KeyFrames.back()->time;
+	}
+	
 private:
 	//メンバ変数。
 	Game*					m_game=nullptr;									//ゲームのポインタ。
@@ -103,7 +134,7 @@ private:
 	Vector3					m_moveSpeed = Vector3::Zero;					//移動速度。
 	Vector3					m_direction = Vector3::Zero;					//向き。
 	Vector3					m_moveDir = Vector3::Zero;						//移動方向。
-	const Vector3			m_firstPosition = Vector3::Zero;				//初期位置。
+	Vector3					m_firstPosition = Vector3::Zero;				//初期位置。
 	float					m_characterRadius=0.0f;							//キャラコンの半径。
 	float					m_characterHeight=0.0f;							//キャラコンの高さ。
 	float					m_stickMoveSpeed = 0.0f;						//スティックの移動速度。
@@ -115,6 +146,8 @@ private:
 	float					m_blowPower = 0.0f;								//吹き飛ばし力。
 	float					m_blowTimer = 0.0f;								//吹き飛ばす時間。
 	float					m_airResistance = 0.0f;							//空気抵抗。
+	float					m_animTimer = 0.0f;								//アニメーションの時間。
+	float					m_animDuration = 0.0f;							//アニメーションの再生時間。
 	bool					m_isJumping = false;							//ジャンプしているか。
 	bool					m_isDiving = false;								//ダイブしているか。
 	bool					m_isBlown = false;								//吹っ飛び中。
@@ -124,6 +157,8 @@ private:
 	bool					m_isRespawn = false;							//フェード中かどうか。
 	bool					m_isFalling = false;							//落下中かどうか。
 	int						m_contRollerIndex = 0;							//コントローラーの数。
-	std::unique_ptr<PlayerControl>	m_playerControl;
-	std::unique_ptr<AIControl>		m_aiControl;
+	int						m_currentAnimClip = -1;							//現在のアニメーションクリップ。
+	std::string				m_modelPath;									//プレイヤーのモデルのパス。
+	std::unique_ptr<PlayerControl>	m_playerControl;						//プレイヤーコントロール。
+	std::unique_ptr<AIControl>		m_aiControl;							//AIコントロール。
 };

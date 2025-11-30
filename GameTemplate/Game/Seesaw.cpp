@@ -46,9 +46,9 @@ void Seesaw::Update()
 	UpdateSeesawState();
 }
 
-//プレイヤーが乗っているかを確認する関数。
 void Seesaw::UpdateSeesawState()
 {
+	//
 	if (m_movingSeesawState == enUp)
 	{
 		m_currentAngle += m_angleSpeed * g_gameTime->GetFrameDeltaTime();
@@ -74,6 +74,7 @@ void Seesaw::UpdateSeesawState()
 	//座標と回転を反映させる。
 	m_physicsDynamicObj.SetPosition(m_position);
 	m_physicsDynamicObj.SetRotation(rot);
+
 	m_modelRender.SetPosition(m_position);
 	m_modelRender.SetRotation(rot);
 	m_modelRender.Update();

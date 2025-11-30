@@ -23,6 +23,8 @@ bool GameCamera::Start()
 
 	//座標を持ってくる。
 	auto pos = gameCamera["Position"];
+	//注視点から視点までのベクトルを設定。
+	m_toCameraPos.Set(pos[0], pos[1], pos[2]);
 	//ニアクリップを持ってくる。
 	m_nearClip = gameCamera["NearClip"];
 	//ファークリップを持ってくる。
@@ -37,16 +39,34 @@ bool GameCamera::Start()
 	m_rotationAngleX = gameCamera["RotationAngleX"];
 	m_rotationAngleY = gameCamera["RotationAngleY"];
 
+	//ノードを取得。
+	auto demo = gameCamera["DemoCamera"];
+
+	//デモカメラのパラメータを持ってくる。
+	auto demoStart = demo["StartPosition"];
+	auto demoEnd = demo["EndPosition"];
+	auto demoTarget = demo["Target"];
+
+	m_demoStartPos.Set(demoStart[0], demoStart[1], demoStart[2]);
+	m_demoEndPos.Set(demoEnd[0], demoEnd[1], demoEnd[2]);
+	m_demoTarget.Set(demoTarget[0], demoTarget[1], demoTarget[2]);
+
+	m_demoDuration = demo["MoveDuration"];
+
 	///////////////////////////////////////////////////////////////////////////////
 	//終わり。
 	///////////////////////////////////////////////////////////////////////////////
 
-	//注視点から視点までのベクトルを設定。
-	m_toCameraPos.Set(pos[0], pos[1], pos[2]);
-
 	//カメラのニアクリップとファークリップを設定。
-	g_camera3D->SetNear(m_nearClip*2);
-	g_camera3D->SetFar(m_farClip*2);
+	g_camera3D->SetNear(m_nearClip * 2);
+	g_camera3D->SetFar(m_farClip * 2);
+
+	g_camera3D->SetPosition(m_demoStartPos);
+	g_camera3D->SetTarget(m_demoTarget);
+
+	//初期化。
+	m_demoTimer = 0.0f;
+	m_cameraMode = enCameraMode_Demo;
 
 	return true;
 }
@@ -63,6 +83,18 @@ GameCamera::~GameCamera()
 
 void GameCamera::Update()
 {
+	if (m_enable == false)
+	{
+		return;
+	}
+
+	if (m_cameraMode == enCameraMode_Demo)
+	{
+		UpdateDemoCamera();
+
+		return;
+	}
+
 	CameraMove();
 }
 
@@ -121,4 +153,23 @@ void GameCamera::CameraMove()
 	g_camera3D->SetTarget(lastTarget);
 	g_camera3D->SetPosition(pos);
 	g_camera3D->Update();
+}
+
+void GameCamera::UpdateDemoCamera()
+{
+	m_demoTimer += g_gameTime->GetFrameDeltaTime();
+
+	float t = min(m_demoTimer / m_demoDuration, 1.0f);
+
+	Vector3 pos = m_demoStartPos + (m_demoEndPos - m_demoStartPos) * t;
+
+	g_camera3D->SetPosition(pos);
+	g_camera3D->SetTarget(m_demoTarget);
+	g_camera3D->Update();
+
+}
+
+void GameCamera::StartFollow()
+{
+	m_cameraMode = enCameraMode_Follow;
 }

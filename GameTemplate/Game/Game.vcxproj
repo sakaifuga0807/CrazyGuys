@@ -225,6 +225,7 @@
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="AIControl.cpp" />
+    <ClCompile Include="Axe.cpp" />
     <ClCompile Include="BackGround.cpp" />
     <ClCompile Include="Barrier.cpp" />
     <ClCompile Include="CountdownManager.cpp" />
@@ -255,6 +256,7 @@
   <ItemGroup>
     <ClInclude Include="Actor.h" />
     <ClInclude Include="AIControl.h" />
+    <ClInclude Include="Axe.h" />
     <ClInclude Include="BackGround.h" />
     <ClInclude Include="Barrier.h" />
     <ClInclude Include="CountdownManager.h" />
