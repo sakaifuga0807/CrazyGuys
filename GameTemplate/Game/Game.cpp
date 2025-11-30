@@ -7,6 +7,7 @@
 #include "Hammer.h"
 #include "Seesaw.h"
 #include "RotationGround.h"
+#include "Axe.h"
 #include "CountdownManager.h"
 #include "GameSettings.h"
 #include "nature/SkyCube.h"
@@ -46,6 +47,9 @@ bool Game::Start()
 	//シーソーの生成。
 	MakeSeesaw();
 
+	//斧の生成。
+	MakeAxes();
+
 	//ゲーム全体の設定。
 	GameConfig();
 
@@ -53,6 +57,14 @@ bool Game::Start()
 	m_debugFont.SetPosition(Vector3(250.0f, 400.0f, 0.0f));
 	m_debugFont.SetScale(1.0f);
 	m_debugFont.SetColor(g_vec4White);
+
+	m_gamePhase = enGamePhase_CameraDemo;
+	m_phaseTimer = 0.0f;
+	
+	for (auto player : m_players)
+	{
+		player->SetCanMove(false);
+	}
 
 	return true;
 }
@@ -96,31 +108,49 @@ Game::~Game()
 	}
 	m_rotationGrounds.clear();
 
+	//斧を削除。
+	for (auto axe : m_axes)
+	{
+		DeleteGO(axe);
+	}
+	m_axes.clear();
+
 	DeleteGO(m_skyCube);
 }
 
 void Game::Update()
 {
-	//カウントダウンが終了したか。
-	if (!m_isCountdownFinished)
+	switch (m_gamePhase)
 	{
-		if (m_countdown&&m_countdown->IsFinished())
+	case enGamePhase_CameraDemo:
+		UpdateCameraDemo();
+		return;
+	case enGamePhase_Countdown:
+		if (m_countdown && m_countdown->IsFinished())
 		{
-			m_isCountdownFinished = true;
+			m_gamePhase = enGamePhase_Playing;
 			DeleteGO(m_countdown);
+
 			for (auto player : m_players)
 			{
-				//カウントダウン終了したことを伝える。
 				player->SetCanMove(true);
-				SoundManager::Get().LoadFromJson("Assets/config/Sound.json");
-				SoundManager::Get().Play("GameBGM");
 			}
+
+			SoundManager::Get().LoadFromJson("Assets/config/Sound.json");
+			SoundManager::Get().Play("GameBGM");
 		}
+		return;
+
+	case enGamePhase_Playing:
+		break;
+	default:
+		break;
 	}
 
 	if (m_isDelete)
 	{
 		DeleteGO(this);
+		return;
 	}
 
 	if (!m_players.empty())
@@ -137,8 +167,7 @@ void Game::Update()
 
 		if (m_goalTimer <= 0.0f)
 		{
-			NewGO<Result>(0, "result");
-			DeleteGO(this);
+			GoToResult(m_winner);
 			return;
 		}
 	}
@@ -157,10 +186,20 @@ void Game::MakePlayers()
 	//総プレイヤー数。
 	int totalPlayers = isSinglePlayer ? 4 : humanPlayerCount;
 
+	const char* modelPaths[] =
+	{
+		"Assets/modelData/BlueGuys.tkm",
+		"Assets/modelData/PinkGuys.tkm",
+		"Assets/modelData/WhiteGuys.tkm",
+		"Assets/modelData/Penguin.tkm"
+	};
+
 	for (int i = 0; i < totalPlayers; i++)
 	{
 		//プレイヤーを生成。
 		auto player = NewGO<Player>(0, ("Player" + std::to_string(i)).c_str());
+
+		player->SetModelPath(modelPaths[i % 4]);
 
 		if (i < humanPlayerCount)
 		{
@@ -309,6 +348,48 @@ void Game::MakeSeesaw()
 	}
 }
 
+void Game::MakeAxes()
+{	
+	//斧の生成。
+	//Jsonデータを格納する。
+	json configDataAxes;
+	//ファイルを読み込む。
+	if (!JsonUtility::LoadJson("Assets/config/AxeList.json", configDataAxes))
+	{
+		return;
+	}
+
+	//ノードを取得。
+	auto axeArray = configDataAxes["Axes"];
+
+	for (int i = 0; i < axeArray.size(); i++)
+	{
+		auto data = axeArray[i];
+
+		//座標、回転、スケールを取得。
+		auto pos = data["Position"];
+		auto rot = data["Rotation"];
+		auto scale = data["Scale"];
+		Vector3 position(pos[0].get<float>(), pos[1].get<float>(), pos[2].get<float>());
+		Quaternion rotation(rot[0].get<float>(), rot[1].get<float>(), rot[2].get<float>(), rot[3].get<float>());
+		Vector3 scaling(scale[0].get<float>(), scale[1].get<float>(), scale[2].get<float>());
+		
+		//速度と範囲を取得。
+		float speed = data["Speed"];
+		float range = data["Range"];
+
+		//斧を生成。
+		auto axe = NewGO<Axe>(0, ("axe" + std::to_string(i)).c_str());
+		axe->SetPosition(position);
+		axe->SetRotation(rotation);
+		axe->SetScale(scaling);
+		axe->SetSpeed(speed);
+		axe->SetRange(range);
+
+		m_axes.push_back(axe);
+	}
+}
+
 void Game::GameConfig()
 {
 	//ゲーム全体の設定を読み込む。
@@ -336,14 +417,14 @@ void Game::GameConfig()
 	m_fontPosition = Vector3(fontPos[0], fontPos[1], fontPos[2]);
 
 	//スカイキューブを作成
-	m_skyCube = NewGO<SkyCube>(0, "skycube");
+	m_skyCube = NewGO<nsK2Engine::SkyCube>(0, "skycube");
 	m_skyCube->SetType(enSkyCubeType_DayToon);
 	m_skyCube->SetPosition(m_skyCubePosition);
 	m_skyCube->SetScale(m_skyCubeScale);
 	m_skyCube->SetLuminance(m_skyCubeLuminance);
 
 	//UI画像を初期化。
-	m_spriteRender.Init("Assets/sprite/CrazyGuysUI.dds", 400.0f, 150.0f);
+	m_spriteRender.Init("Assets/sprite/CrazyGuysUI.dds", 500.0f, 150.0f);
 	m_spriteRender.SetPosition(m_spritePosition);
 	m_spriteRender.Update();
 
@@ -353,7 +434,7 @@ void Game::GameConfig()
 	m_roundOverSprite.Update();
 
 	//UI文字を初期化。
-	m_fontRender.SetText(L"鍵を取ろう！");
+	m_fontRender.SetText(L"ゴールを目指そう！");
 	m_fontRender.SetPosition(m_fontPosition);
 	m_fontRender.SetColor(g_vec4White);
 }
@@ -364,17 +445,29 @@ void Game::ShowRoundOver()
 	SoundManager::Get().StopBGM();
 }
 
-void Game::OnPlayerGoal()
+void Game::OnPlayerGoal(Player*winner)
 {
 	if (m_isGoal)
 	{
-		return;
+		m_goalTimer -= g_gameTime->GetFrameDeltaTime();
+
+		if (m_goalTimer <= 0.0f && !m_isResultCreated)
+		{
+			m_isResultCreated = true;
+			GoToResult(m_winner);
+
+			return;
+		}
 	}
+
+	//勝者を設定。
+	m_winner = winner;
 
 	//フラグを立てる。
 	m_isGoal = true;
 	//待つ。
 	m_goalTimer = 3.0f;
+
 	//表示をする。
 	ShowRoundOver();
 
@@ -385,11 +478,59 @@ void Game::OnPlayerGoal()
 	}
 }
 
+void Game::GoToResult(Player* winner)
+{
+	if (m_isDelete)
+	{
+		return;
+	}
+	m_isDelete = true;
+
+	//BGM停止。
+	SoundManager::Get().StopBGM();
+
+	//カメラ無効化。
+	if (m_gameCamera)
+	{
+		m_gameCamera->m_enable = false;
+	}
+
+	//リザルト生成。
+	auto result = NewGO<Result>(0, "result");
+
+	if (winner)
+	{
+		//モデルパスを取得。
+		result->SetWinnerModelPath(winner->GetModelPath());
+	}
+
+	DeleteGO(this);
+}
+
+void Game::UpdateCameraDemo()
+{
+
+	//カメラのデモモードが終わったかを見る。
+	if (m_gameCamera->IsCameraDemoFinished())
+	{
+		m_gamePhase = enGamePhase_Countdown;
+
+		//カメラをプレイヤー追従に切り替え。
+		m_gameCamera->StartFollow();
+
+		if (m_countdown)
+		{
+			m_countdown->StartCountdown();
+		}
+
+	}
+}
+
 void Game::Render(RenderContext& rc)
 {
 	m_spriteRender.Draw(rc);
 	m_fontRender.Draw(rc);
-	m_debugFont.Draw(rc);
+	//m_debugFont.Draw(rc);
 	if (m_showRoundOver)
 	{
 		m_roundOverSprite.Draw(rc);

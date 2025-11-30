@@ -6,6 +6,7 @@ public:
 	void Update();
 	void Countdown();
 	void Rotation();
+	void StartCountdown();
 	void Render(RenderContext& rc);
 
 	bool IsFinished()const
@@ -23,6 +24,7 @@ private:
 	float			m_startRotationTime=0.0f;						//回転を始める時間。
 	float			m_rotationSpeed = 0.0f;							//回転速度。
 	float			m_scaleShrinkRate = 0.0f;						//縮小率。
+	bool			m_isStarted = false;							//カウントダウンが始まったか。
 	bool			m_isFinished = false;							//終了したか。
 	int				m_currentIndex = 0;								//現在のインデックス。
 };

@@ -1,6 +1,10 @@
 #pragma once
 
 class Title;
+class Player;
+
+#include "graphics/effect/EffectEmitter.h"
+#include "Player.h"
 
 class Result:public IGameObject
 {
@@ -11,12 +15,28 @@ public:
 	void Update();
 	void Render(RenderContext& rc);
 
+	//勝者を受け取るための関数。
+	void SetWinnerModelPath(const char* path)
+	{
+		if (path)
+		{
+			m_winnerModelPath = path;
+		}
+	}
+
+
 private:
 	//メンバ変数。
-	Title* m_title;//タイトル。
-	SpriteRender m_spriteRender;//スプライトレンダー。
-private:
-	float m_angle;
+	nsK2Engine::SkyCube* m_skyCube;
+	std::string m_winnerModelPath;
+	AnimationClip m_victoryClip;
+	SpriteRender m_spriteRender;
+	EffectEmitter* m_effectEmitter;
+	ModelRender m_modelRender;
+	Title* m_title;
+	Game* m_game;
+
+	float m_angle = 0.0f;
+public:
 	bool m_isEnd = false;
 };
-

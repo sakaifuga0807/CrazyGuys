@@ -16,8 +16,12 @@ bool Player::Start()
 	m_animationClips[enAnimationClip_Idle].SetLoopFlag(true);
 	m_animationClips[enAnimationClip_Run].Load("Assets/animData/Run.tka");
 	m_animationClips[enAnimationClip_Run].SetLoopFlag(true);
-	m_animationClips[enAnimationClip_Jump].Load("Assets/animData/Jump.tka");
-	m_animationClips[enAnimationClip_Jump].SetLoopFlag(false);
+	m_animationClips[enAnimationClip_JumpStart].Load("Assets/animData/JumpStart.tka");
+	m_animationClips[enAnimationClip_JumpStart].SetLoopFlag(false);
+	m_animationClips[enAnimationClip_JumpAir].Load("Assets/animData/JumpAir.tka");
+	m_animationClips[enAnimationClip_JumpAir].SetLoopFlag(false);
+	m_animationClips[enAnimationClip_JumpEnd].Load("Assets/animData/JumpEnd.tka");
+	m_animationClips[enAnimationClip_JumpEnd].SetLoopFlag(false);
 	m_animationClips[enAnimationClip_Dive].Load("Assets/animData/Dive.tka");
 	m_animationClips[enAnimationClip_Dive].SetLoopFlag(false);
 	m_animationClips[enAnimationClip_Hit].Load("Assets/animData/Hit.tka");
@@ -25,9 +29,17 @@ bool Player::Start()
 	m_animationClips[enAnimationClip_Victory].Load("Assets/animData/Victory.tka");
 	m_animationClips[enAnimationClip_Victory].SetLoopFlag(false);
 
-	//モデルを読み込む。
-	//m_modelRender.Init("Assets/modelData/BulueGuys.tkm");
-	m_modelRender.Init("Assets/modelData/a.tkm", m_animationClips, enAnimationClip_Num);
+	//モデルを読み込む。	
+	if (m_modelPath.empty())
+	{
+		m_modelPath = "Assets/modelData/PinkGuys.tkm";
+	}
+
+	m_modelRender.Init(m_modelPath.c_str(), m_animationClips, enAnimationClip_Num);
+	m_modelRender.SetShadowCasterFlag(true);
+
+	//エフェクトを読み込む。
+	//EffectEmitter
 
 	//音を読み込む。
 	SoundManager::Get().LoadFromJson("Assets/config/Sound.json");
@@ -80,14 +92,25 @@ bool Player::Start()
 	//大きさを設定。
 	m_modelRender.SetScale(scale[0], scale[1], scale[2]);
 
-	m_rotation = Quaternion::Identity;
-	m_modelRender.SetRotation(m_rotation);
+	//Gameで設定した座標をそのまま使う。
+	m_position = GetPosition();
 
-	//座標をセット。
-	//m_position.Set(pos[0], pos[1], pos[2]);
+	//リスポーンも設定。
+	m_firstPosition = m_position;
 
 	//キャラコンを初期化。
 	m_characterController.Init(m_characterRadius, m_characterHeight, m_position);
+
+	m_modelRender.SetPosition(m_position);
+	m_modelRender.Update();
+
+	//正面を向かせる。
+	m_forward = Vector3::AxisZ;
+
+	Quaternion initRot;
+	initRot.SetRotationDegY(180.0f);
+	m_rotation = initRot;
+	m_modelRender.SetRotation(m_rotation);
 
 	//インスタンスアドレスを検索。
 	m_goal = FindGO<Goal>("goal");
@@ -116,12 +139,12 @@ Player::~Player()
 
 void Player::Update()
 {
-	m_modelRender.Update();
-	m_modelRender.SetPosition(m_position);
 
 	//カウントダウン中は動かさない。
 	if (!m_canMove)
 	{
+		m_modelRender.SetPosition(m_position);
+		m_modelRender.Update();
 		return;
 	}
 
@@ -138,12 +161,16 @@ void Player::Update()
 		m_isJumpRequested = m_aiControl->IsJumpRequested();
 	}
 
-	//移動処理。
-	Move(m_moveDir);
 	//ジャンプ処理。
 	Jump();
-	//回転処理。
-	Rotation(m_moveDir);
+	//移動処理。
+	Move(m_moveDir);
+	//入力があるときだけ回転。
+	if (m_moveDir.LengthSq() > 0.001f)
+	{
+		//回転処理。
+		Rotation(m_moveDir);
+	}
 	//一定距離落下したら座標ををリセットする。	
 	ResetPosition();
 	//コリジョン処理。
@@ -152,6 +179,7 @@ void Player::Update()
 	PlayAnimation();
 
 	m_modelRender.SetPosition(m_position);
+	m_modelRender.Update();
 }
 
 //移動処理。
@@ -166,7 +194,7 @@ void Player::Move(const Vector3& moveDir)
 		m_moveSpeed *= m_airResistance;
 		//重力を加える。
 		m_moveSpeed.y -= m_gravity;
-
+		
 		if (m_blowTimer <= 0.0f || m_characterController.IsOnGround())
 		{
 			m_isBlown = false;
@@ -175,56 +203,57 @@ void Player::Move(const Vector3& moveDir)
 
 		m_modelRender.SetPosition(m_position);
 		m_modelRender.Update();
+
 		return;
 	}
 
-	if (!m_isDiving)
+
+	if (m_isDiving)
 	{
-		if (moveDir.LengthSq() > 0.01f)
-		{
-			m_state = enState_Run;
-			m_moveSpeed.x = moveDir.x * m_stickMoveSpeed;
-			m_moveSpeed.z = moveDir.z * m_stickMoveSpeed;
-		}
-		else
-		{
-			m_state = enState_Idle;
-			m_moveSpeed.x = 0.0f;
-			m_moveSpeed.z = 0.0f;
-		}
-	}
-	else
-	{
-		//ダイブ中は入力を受け付けない。
 		m_diveTimer -= g_gameTime->GetFrameDeltaTime();
 
-		//徐々に速度を減衰。
-		m_moveSpeed.x *= 0.98;
-		m_moveSpeed.z *= 0.98;
+		m_moveSpeed.y -= m_gravity * m_fallGravity;
 
-		//ダイブ時間が終わったらダイブ終了。
+		//終了判定。
 		if (m_diveTimer <= 0.0f || m_characterController.IsOnGround())
 		{
 			m_isDiving = false;
 		}
 	}
-
-	//重力を発生させる。
-	if (!m_characterController.IsOnGround())
+	else
 	{
-		m_moveSpeed.y -= m_gravity;
+		m_moveSpeed.x = moveDir.x * m_stickMoveSpeed;
+		m_moveSpeed.z = moveDir.z * m_stickMoveSpeed;
+
+		//重力を発生させる。
+		if (!m_characterController.IsOnGround())
+		{
+			m_moveSpeed.y -= m_gravity;
+		}
+		else
+		{
+			if (!m_isJumping &&
+				!m_isDiving &&
+				!m_isBlown &&
+				m_state != enState_Hit &&
+				m_state != enState_Victory &&
+				m_state != enState_JumpStart &&
+				m_state != enState_JumpAir)
+			{
+				if (moveDir.LengthSq() > 0.001f)
+				{
+					m_state = enState_Run;
+				}
+				else
+				{
+					m_state = enState_Idle;
+				}
+			}
+		}
 	}
 
 	//キャラコンでキャラクターを移動させる。
 	m_position = m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime());
-
-	//地面に付いていたら。
-	if (m_characterController.IsOnGround())
-	{
-		m_moveSpeed.y = 0.0f;
-		m_isJumping = false;
-	}
-
 	m_modelRender.SetPosition(m_position);
 	m_modelRender.Update();
 }
@@ -250,14 +279,15 @@ void Player::Jump()
 		}
 
 		//ステートをジャンプにする。
-		m_state = enState_Jump;
+		m_state = enState_JumpStart;
 		//ジャンプ力を加える。
 		m_moveSpeed.y = m_jumpPower;
 
 		return;
 	}
+
 	//ジャンプ中にもう一度Aボタンを押すとダイブに。
-	else if (m_isJumping && !m_isDiving && m_isJumpRequested)
+	if (m_isJumping && !m_isDiving && m_isJumpRequested)
 	{
 		//フラグを戻す。
 		m_isJumpRequested = false;
@@ -283,19 +313,53 @@ void Player::Jump()
 		{
 			m_moveSpeed.y = 0.0f;
 		}
+
+		return;
+	}
+
+	if (!m_characterController.IsOnGround() &&m_state == enState_JumpStart)
+	{
+		if (!m_modelRender.IsPlayingAnimation())
+		{
+			m_state = enState_JumpAir;
+		}
+	}
+
+	if (m_characterController.IsOnGround())
+	{
+		if (m_state == enState_JumpAir)
+		{
+			m_state = enState_JumpEnd;
+			m_isJumping = false;
+			m_isDiving = false;
+		}
+		else if(m_state == enState_Dive)
+		{
+			m_isDiving = false;
+			m_isJumping = false;
+		}
 	}
 }
 
 //回転処理。
 void Player::Rotation(const Vector3& moveDir)
 {
-	if (moveDir.LengthSq() < 0.001f)
+	Vector3 dir = moveDir;
+
+	if (dir.LengthSq() < 0.001f)
+	{
+		dir = m_forward;
+	}
+
+	dir.Normalize();
+
+	m_forward = dir;
+	float angle = atan2(dir.x, dir.z);
+
+	if (!std::isfinite(angle))
 	{
 		return;
 	}
-
-	m_forward = moveDir;
-	float angle = atan2(moveDir.x, moveDir.z);
 
 	//回転をQuaternionに変換。
 	Quaternion targetRot;
@@ -405,7 +469,7 @@ void Player::CheckCollision()
 			if (m_game)
 			{
 				SoundManager::Get().Play("Win");
-				m_game->OnPlayerGoal();
+				m_game->OnPlayerGoal(this);
 			}
 
 			return;
@@ -471,9 +535,33 @@ void Player::PlayAnimation()
 		m_modelRender.PlayAnimation(enAnimationClip_Run);
 		break;
 		//ジャンプステートだったら。
-	case enState_Jump:
+	case enState_JumpStart:
 		//ジャンプアニメーションを再生。
-		m_modelRender.PlayAnimation(enAnimationClip_Jump);
+		m_modelRender.PlayAnimation(enAnimationClip_JumpStart);
+		break;
+		//空中にいるステートだったら。
+	case enState_JumpAir:
+		//空中にいるアニメーションを再生。
+		m_modelRender.PlayAnimation(enAnimationClip_JumpAir);
+		break;
+		//着地ステートだったら。
+	case enState_JumpEnd:
+		//着地アニメーションを再生。
+		m_modelRender.PlayAnimation(enAnimationClip_JumpEnd);
+
+		//着地アニメーションが終わったらステートを変更。
+		if (!m_modelRender.IsPlayingAnimation())
+		{
+			if (m_moveDir.LengthSq() > 0.001f)
+			{
+				m_state = enState_Run;
+			}
+			else
+			{
+				m_state = enState_Idle;
+			}
+		}
+
 		break;
 		//ダイブステートだったら。
 	case enState_Dive:

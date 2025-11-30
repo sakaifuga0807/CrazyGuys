@@ -32,6 +32,7 @@
     <ClCompile Include="GameSettings.cpp" />
     <ClCompile Include="FadeManager.cpp" />
     <ClCompile Include="SoundManager.cpp" />
+    <ClCompile Include="Axe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -60,6 +61,7 @@
     <ClInclude Include="GameSettings.h" />
     <ClInclude Include="FadeManager.h" />
     <ClInclude Include="SoundManager.h" />
+    <ClInclude Include="Axe.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Game.rc" />

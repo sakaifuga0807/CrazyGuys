@@ -34,8 +34,6 @@ bool CountdownManager::Start()
 		m_sprites.push_back(std::move(sprite));
 	}
 
-    //時間。  
-	m_timer = countdownData["StartTimer"];
 	//1枚当たりの表示時間。
 	m_displayDuration = countdownData["DisplayDuration"];
 	//回転を始めるタイミング。
@@ -53,6 +51,11 @@ bool CountdownManager::Start()
 
 void CountdownManager::Update()
 {
+	if (!m_isStarted)
+	{
+		return;
+	}
+
 	if (m_isFinished)
 	{
 		return;
@@ -138,8 +141,23 @@ void CountdownManager::Rotation()
 	m_sprites[m_currentIndex]->SetScale({ scale,scale,1.0f });
 }
 
+void CountdownManager::StartCountdown()
+{
+	m_isStarted = true;
+	m_isFinished = false;
+	m_timer = 4.0f;
+	m_currentIndex = 0;
+	m_timeInCurrent = 0.0f;
+	m_rotation = 0.0f;
+}
+
 void CountdownManager::Render(RenderContext& rc)
 {
+	if (!m_isStarted)
+	{
+		return;
+	}
+
 	if (!m_isFinished && m_currentIndex < m_sprites.size())
 	{
 		m_sprites[m_currentIndex]->Draw(rc);
