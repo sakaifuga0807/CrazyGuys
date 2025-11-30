@@ -27,28 +27,28 @@ namespace nsK2Engine {
     void SceneLight::Init()
     {
         // 太陽光
-        m_light.directionalLight[0].color.x = 1.2f;
-        m_light.directionalLight[0].color.y = 1.2f;
-        m_light.directionalLight[0].color.z = 1.2f;
+        m_light.directionalLight[0].color.x = 1.6f;
+        m_light.directionalLight[0].color.y = 1.6f;
+        m_light.directionalLight[0].color.z = 1.6f;
 
-        m_light.directionalLight[0].direction.x = 1.0f;
+        m_light.directionalLight[0].direction.x = -0.3f;
         m_light.directionalLight[0].direction.y = -1.0f;
-        m_light.directionalLight[0].direction.z = -1.0f;
+        m_light.directionalLight[0].direction.z = -0.3f;
         m_light.directionalLight[0].direction.Normalize();
         m_light.directionalLight[0].castShadow = true;
 
-        //
-      /*  m_light.directionalLight[1].color.x = 1.0f;
-        m_light.directionalLight[1].color.y = 1.0f;
-        m_light.directionalLight[1].color.z = 1.0f;
+        //補助ライト。
+        m_light.directionalLight[1].color.x = 0.6f;
+        m_light.directionalLight[1].color.y = 0.6f;
+        m_light.directionalLight[1].color.z = 0.6f;
 
-        m_light.directionalLight[1].direction.x = -1.0f;
-        m_light.directionalLight[1].direction.y = -1.0f;
-        m_light.directionalLight[1].direction.z = 1.0f;
+        m_light.directionalLight[1].direction.x = 0.4f;
+        m_light.directionalLight[1].direction.y = -0.2f;
+        m_light.directionalLight[1].direction.z = 0.6f;
         m_light.directionalLight[1].direction.Normalize();
         m_light.directionalLight[1].castShadow = false;
 
-        // 地面からの照り返し
+      /*  // 地面からの照り返し
         m_light.directionalLight[2].color.x = 0.6f;
         m_light.directionalLight[2].color.y = 0.6f;
         m_light.directionalLight[2].color.z = 0.6f;
@@ -58,9 +58,9 @@ namespace nsK2Engine {
         m_light.directionalLight[2].direction.z = 1.0f;
         m_light.directionalLight[2].direction.Normalize();*/
 
-        m_light.ambinetLight.x = 0.5f;
-        m_light.ambinetLight.y = 0.5f;
-        m_light.ambinetLight.z = 0.5f;
+        m_light.ambinetLight.x = 0.65f;
+        m_light.ambinetLight.y = 0.65f;
+        m_light.ambinetLight.z = 0.65f;
         m_light.eyePos = g_camera3D->GetPosition();
         m_light.numPointLight = 0;
 
