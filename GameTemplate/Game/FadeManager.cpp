@@ -4,7 +4,16 @@
 bool FadeManager::Start()
 {
 	m_spriteRender.Init("Assets/sprite/white.dds", 1920.0f, 1080.0f);
-	m_spriteRender.SetMulColor(m_fadeColor);
+
+	//‰Šú‰»B
+	m_alpha = 0.0f;
+	m_state = FadeState::None;
+	m_fadeColor = g_vec4Black;
+
+	Vector4 c = m_fadeColor;
+	c.w = m_alpha;
+	m_spriteRender.SetMulColor(c);
+	m_spriteRender.Update();
 
 	return true;
 }
@@ -25,7 +34,7 @@ FadeManager* FadeManager::GetInstance()
 	auto*instance = FindGO<FadeManager>("fademanager");
 	if (!instance)
 	{
-		instance = NewGO<FadeManager>(0, "fademanager");
+		instance = NewGO<FadeManager>(10, "fademanager");
 		instance->Start();
 	}
 	return instance;

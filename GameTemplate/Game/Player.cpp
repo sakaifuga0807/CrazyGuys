@@ -100,7 +100,6 @@ bool Player::Start()
 
 	//キャラコンを初期化。
 	m_characterController.Init(m_characterRadius, m_characterHeight, m_position);
-
 	m_modelRender.SetPosition(m_position);
 	m_modelRender.Update();
 
@@ -115,6 +114,7 @@ bool Player::Start()
 	//インスタンスアドレスを検索。
 	m_goal = FindGO<Goal>("goal");
 
+	
 	if (m_isAI)
 	{
 		m_aiControl = std::make_unique<AIControl>(this);
@@ -123,6 +123,11 @@ bool Player::Start()
 	{
 		m_playerControl = std::make_unique<PlayerControl>(this);
 	}
+
+	//エフェクトを読み込む。
+	EffectEngine::GetInstance()->ResistEffect(0, u"Assets/effect/Hit.efk");
+	EffectEngine::GetInstance()->ResistEffect(1, u"Assets/effect/FireWorks.efk");
+
 
 	return true;
 }
@@ -271,6 +276,12 @@ void Player::Jump()
 		//ダイブのフラグを立てないようにする。
 		m_isDiving = false;
 
+		EffectEmitter* effectEmitter = NewGO<EffectEmitter>(0);
+		effectEmitter->Init(1);
+		effectEmitter->SetPosition(m_position);
+		effectEmitter->SetRotation(m_rotation);
+		effectEmitter->SetScale({ 1.0f,1.0f,1.0f });
+		effectEmitter->Play();
 
 		if (!m_isAI)
 		{
@@ -403,7 +414,7 @@ void Player::ResetPosition()
 		}
 	}
 
-	//落下し始めたら落下音を鳴らす。
+	//落下し始めたら落下音とエフェクトを再生。
 	if (m_moveSpeed.y <= -1000.0f)
 	{
 		if (!m_isFalling)
@@ -417,7 +428,7 @@ void Player::ResetPosition()
 		}
 	}
 
-
+	//一定距離落下したらリスポン。
 	if (m_position.y <= -3000.0f)
 	{
 		m_isRespawn = true;
@@ -437,6 +448,7 @@ void Player::ResetPosition()
 			m_modelRender.SetPosition(m_firstPosition);
 			m_modelRender.Update();
 
+			//AIの音は出さない。
 			if (!m_isAI)
 			{
 				SoundManager::Get().Play("Respawn");
@@ -500,6 +512,14 @@ void Player::CheckCollision()
 				//音を再生。
 				SoundManager::Get().Play("HammerHIT");
 			}
+
+			//エフェクトを再生。
+			EffectEmitter* effectEmitter = NewGO<EffectEmitter>(0);
+			effectEmitter->Init(0);
+			effectEmitter->SetPosition(m_position);
+			effectEmitter->SetRotation(m_rotation);
+			effectEmitter->SetScale({ 20.0f,20.0f,20.0f });
+			effectEmitter->Play();
 
 			//前方向を取得して、正規化。
 			Vector3 hammerForward = hammer->GetForward();

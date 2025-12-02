@@ -14,11 +14,16 @@
 #include "JsonUtility.h"
 #include "Result.h"
 #include "SoundManager.h"
+#include "FadeManager.h"
 #include <cstdlib>
 #include <ctime>
 
+bool Game::m_isReady = false;
+
 bool Game::Start()
 {
+	FadeManager::GetInstance()->StartFadeIn(0.5f);
+
 	//乱数の初期化。
 	srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -26,7 +31,7 @@ bool Game::Start()
 	m_backGround=NewGO<BackGround>(0,"background");
 
 	//ゴールの生成。
-	m_goal = NewGO<Goal>(0, "goal");
+	m_goal = NewGO<Goal>(1, "goal");
 
 	//プレイヤーの生成。
 	MakePlayers();
@@ -36,7 +41,7 @@ bool Game::Start()
 	m_gameCamera->SetTarget(m_players[0]);
 
 	//カウントダウンを生成。
-	m_countdown = NewGO<CountdownManager>(0, "countdown");
+	m_countdown = NewGO<CountdownManager>(1, "countdown");
 
 	//回転床の生成。
 	MakeRotationGrounds();
@@ -65,6 +70,9 @@ bool Game::Start()
 	{
 		player->SetCanMove(false);
 	}
+
+	//準備完了を伝える。
+	m_isReady = true;
 
 	return true;
 }
@@ -254,7 +262,7 @@ void Game::MakeRotationGrounds()
 		float angleSpeed = data["AngleSpeed"].get<float>();
 
 		//回転床を生成。
-		auto rotationGround = NewGO<RotationGround>(0, ("rotationground" + std::to_string(i)).c_str());
+		auto rotationGround = NewGO<RotationGround>(1, ("rotationground" + std::to_string(i)).c_str());
 		rotationGround->SetPosition(position);
 		rotationGround->SetRotation(rotation);
 		rotationGround->SetScale(scaling);
@@ -292,7 +300,7 @@ void Game::MakeHammers()
 		Vector3 scaling(scale[0].get<float>(), scale[1].get<float>(), scale[2].get<float>());
 
 		//ハンマーを生成。
-		auto hammer = NewGO<Hammer>(0, ("hammer" + std::to_string(i)).c_str());
+		auto hammer = NewGO<Hammer>(1, ("hammer" + std::to_string(i)).c_str());
 		hammer->SetPosition(position);
 		hammer->SetRotation(rotation);
 		hammer->SetScale(scaling);
@@ -329,7 +337,7 @@ void Game::MakeSeesaw()
 		Vector3 scaling(scale[0].get<float>(), scale[1].get<float>(), scale[2].get<float>());
 
 		//シーソーを生成。
-		auto seesaw = NewGO<Seesaw>(0, ("seesaw" + std::to_string(i)).c_str());
+		auto seesaw = NewGO<Seesaw>(1, ("seesaw" + std::to_string(i)).c_str());
 		seesaw->SetPosition(position);
 		seesaw->SetRotation(rotation);
 		seesaw->SetScale(scaling);
@@ -379,7 +387,7 @@ void Game::MakeAxes()
 		float range = data["Range"];
 
 		//斧を生成。
-		auto axe = NewGO<Axe>(0, ("axe" + std::to_string(i)).c_str());
+		auto axe = NewGO<Axe>(2, ("axe" + std::to_string(i)).c_str());
 		axe->SetPosition(position);
 		axe->SetRotation(rotation);
 		axe->SetScale(scaling);
@@ -417,7 +425,7 @@ void Game::GameConfig()
 	m_fontPosition = Vector3(fontPos[0], fontPos[1], fontPos[2]);
 
 	//スカイキューブを作成
-	m_skyCube = NewGO<nsK2Engine::SkyCube>(0, "skycube");
+	m_skyCube = NewGO<nsK2Engine::SkyCube>(3, "skycube");
 	m_skyCube->SetType(enSkyCubeType_DayToon);
 	m_skyCube->SetPosition(m_skyCubePosition);
 	m_skyCube->SetScale(m_skyCubeScale);
@@ -496,7 +504,7 @@ void Game::GoToResult(Player* winner)
 	}
 
 	//リザルト生成。
-	auto result = NewGO<Result>(0, "result");
+	auto result = NewGO<Result>(3, "result");
 
 	if (winner)
 	{
@@ -509,7 +517,6 @@ void Game::GoToResult(Player* winner)
 
 void Game::UpdateCameraDemo()
 {
-
 	//カメラのデモモードが終わったかを見る。
 	if (m_gameCamera->IsCameraDemoFinished())
 	{
@@ -522,7 +529,6 @@ void Game::UpdateCameraDemo()
 		{
 			m_countdown->StartCountdown();
 		}
-
 	}
 }
 

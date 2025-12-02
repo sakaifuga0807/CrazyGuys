@@ -3,6 +3,8 @@
 #include "Game.h"
 #include "GameSettings.h"
 #include "SoundManager.h"
+#include "FadeManager.h"
+#include "Load.h"
 
 bool Title::Start()
 {
@@ -19,13 +21,6 @@ bool Title::Start()
 	m_fontRender.SetColor(g_vec4Black);
 	m_fontRender.SetPosition(0.0f,-400.0f,0.0f);
 	m_fontRender.SetScale(2.0f);
-	
-	//ロード中の文字の初期化。
-	//m_fontLoading.SetText(L"NowLoading");
-	m_fontLoading.SetColor(g_vec4White);
-	m_fontLoading.SetPosition(300.0f, -400.0f, 0.0f);
-	m_fontLoading.SetScale(2.0f);
-	m_fontLoading.SetText(L"NowLoading");
 
 	//音などの情報をロードする。
 	SoundManager::Get().LoadFromJson("Assets/config/Sound.json");
@@ -54,37 +49,18 @@ void Title::Update()
 		if (g_pad[0]->IsTrigger(enButtonA))
 		{
 			m_isStart = true;
-			m_dontCount = 0;
-			m_dotTimer = 0.0f;
 
 			SoundManager::Get().Play("Enter");
 			SoundManager::Get().StopBGM();
+
+			FadeManager::GetInstance()->StartFadeOut(0.5f);
 		}
 		return;
 	}
 
-	//アニメーション。
-	m_dotTimer += 0.005f;
-	if (m_dotTimer >= 1.0)
+	if (m_isStart && !FadeManager::GetInstance()->IsFadeing())
 	{
-		m_dotTimer = 0.0f;
-		m_dontCount++;
-
-		if (m_dontCount > 3)
-		{
-			m_dontCount = 0;
-		}
-
-		//ドットの数を変更。
-		wchar_t buf[64];
-		swprintf_s(buf, L"NowLoading%.*s", m_dontCount, L"...");
-
-		m_fontLoading.SetText(buf);
-	}
-
-	if (m_dontCount == 3)
-	{
-		NewGO<Game>(0, "Game");
+		NewGO<Load>(5, "load");
 		DeleteGO(this);
 	}
 
@@ -140,9 +116,4 @@ void Title::Update()
 void Title::Render(RenderContext& rc)
 {
 	m_spriteRender.Draw(rc);
-	if (m_isStart)
-	{
-		m_fontLoading.Draw(rc);
-	}
-	//m_fontRender.Draw(rc);
 }
