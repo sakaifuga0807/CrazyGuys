@@ -3,7 +3,6 @@
 class Title;
 class Player;
 
-#include "graphics/effect/EffectEmitter.h"
 #include "Player.h"
 
 class Result:public IGameObject

@@ -39,6 +39,11 @@ public:
 	void UpdateCameraDemo();
 	void Render(RenderContext& rc);
 
+	static bool IsReady()
+	{
+		return m_isReady;
+	}
+
 private:
 	BackGround*							m_backGround=nullptr;					//ステージのポインタ。
 	GameCamera*							m_gameCamera=nullptr;					//カメラのポインタ。
@@ -70,6 +75,7 @@ private:
 	bool								m_showRoundOver = false;				//ラウンドオーバーかどうか。
 	bool								m_isGoal = false;						//ゴールしたか。
 	bool								m_isResultCreated = false;				//リザルト画面が作成されたか。
+	static bool m_isReady;//準備完了か。
 public:
 	bool								m_isDelete = false;						//削除するか。
 };

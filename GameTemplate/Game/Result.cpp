@@ -4,11 +4,12 @@
 #include "SoundManager.h"
 #include "Game.h"
 #include "Player.h"
+#include "graphics/effect/EffectEmitter.h"
 
 bool Result::Start()
 {
 	//スカイキューブを生成。
-	m_skyCube = NewGO<nsK2Engine::SkyCube>(0, "skyCube");
+	m_skyCube = NewGO<nsK2Engine::SkyCube>(0, "skycube");
 	m_skyCube->SetType(enSkyCubeType_DayToon_3);
 	m_skyCube->SetScale(500.0f);
 	m_skyCube->SetLuminance(1.0f);
@@ -45,13 +46,7 @@ bool Result::Start()
 	SoundManager::Get().Play("Result");
 
 	//エフェクトを読み込む。
-	/*EffectEngine::GetInstance()->ResistEffect(1, u"Assets/effect/Win.efk");
-
-	m_effectEmitter = NewGO<EffectEmitter>(0);
-	m_effectEmitter->Init(1);
-	m_effectEmitter->SetPosition({ 0.0f, -35.0f, 100.0f });
-	m_effectEmitter->Play();*/
-
+	//EffectEngine::GetInstance()->ResistEffect(1, u"Assets/effect/hit.efk");
 
 	//インスタンスを検索。
 	m_game = FindGO<Game>("game");
@@ -77,6 +72,12 @@ void Result::Update()
 	}
 
 	m_modelRender.Update();
+
+	/*m_effectEmitter = NewGO<EffectEmitter>(0);
+	m_effectEmitter->Init(1);
+	m_effectEmitter->SetPosition({ 0.0f, -35.0f, 100.0f });
+	m_effectEmitter->SetScale({ 1.0f,1.0f,1.0f });
+	m_effectEmitter->Play();*/
 
 	//Aボタンが押されたらタイトルへ。
 	if (g_pad[0]->IsTrigger(enButtonA))
