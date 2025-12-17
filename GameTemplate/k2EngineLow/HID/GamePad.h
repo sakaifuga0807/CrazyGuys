@@ -73,7 +73,7 @@ namespace nsK2EngineLow {
 		/// </summary>
 		/// <param name="xInputState">キー入力</param>
 		void Update(const XINPUT_STATE& xInputState);
-		
+	
 		/// <summary>
 		/// ボタンのトリガー判定
 		/// </summary>
@@ -82,6 +82,12 @@ namespace nsK2EngineLow {
 		bool IsTrigger(EnButton button) const
 		{
 			return m_trigger[button] != 0;
+		}
+
+		//コントローラーがつながれているか。
+		bool IsConnected()const
+		{
+			return m_state.bConnected;
 		}
 
 		/// <summary>
