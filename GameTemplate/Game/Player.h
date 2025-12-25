@@ -52,6 +52,8 @@ public:
 	void Rotation(const Vector3& moveDir);
 	//座標をリセットする。
 	void ResetPosition();
+	//リスポーン処理。
+	void Respawn();
 	//コリジョン。
 	void CheckCollision();
 	//アニメーションを再生。
@@ -60,10 +62,7 @@ public:
 	void Render(RenderContext& rc);
 	
 	//インデックスの設定。
-	void SetControllerIndex(int index)
-	{
-		m_contRollerIndex = index;
-	}
+	void SetControllerIndex(int index);
 
 	//AIの設定。
 	void SetIsAI(bool isAI)
@@ -156,9 +155,11 @@ private:
 	bool					m_canMove = false;								//移動できるか。
 	bool					m_isRespawn = false;							//フェード中かどうか。
 	bool					m_isFalling = false;							//落下中かどうか。
-	int						m_contRollerIndex = 0;							//コントローラーの数。
+	bool					m_isGoalReached = false;						//ゴール判定を一回だけ行うフラグ。
+	int						m_controllerIndex = -1;							//コントローラーの数。
 	int						m_currentAnimClip = -1;							//現在のアニメーションクリップ。
-	std::string				m_modelPath;									//プレイヤーのモデルのパス。
+
+	std::string						m_modelPath;							//プレイヤーのモデルのパス。
 	std::unique_ptr<PlayerControl>	m_playerControl;						//プレイヤーコントロール。
 	std::unique_ptr<AIControl>		m_aiControl;							//AIコントロール。
 };

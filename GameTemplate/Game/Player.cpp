@@ -9,6 +9,12 @@
 #include "JsonUtility.h"
 #include "SoundManager.h"
 
+namespace
+{
+	const float RESET_POSITION = -3000.0f;	//リセットする座標。
+	const float PLAY_SOND_RESPAWN = -1000.0;	//落下音を再生する座標。
+}
+
 bool Player::Start()
 {
 	//アニメーション読み込み。
@@ -114,25 +120,17 @@ bool Player::Start()
 	//インスタンスアドレスを検索。
 	m_goal = FindGO<Goal>("goal");
 
-	
-	if (m_isAI)
-	{
-		m_aiControl = std::make_unique<AIControl>(this);
-	}
-	else
-	{
-		m_playerControl = std::make_unique<PlayerControl>(this);
-	}
-
 	//エフェクトを読み込む。
 	EffectEngine::GetInstance()->ResistEffect(0, u"Assets/effect/Hit.efk");
-	EffectEngine::GetInstance()->ResistEffect(1, u"Assets/effect/FireWorks.efk");
+	EffectEngine::GetInstance()->ResistEffect(1, u"Assets/effect/Respown.efkefc");
+	EffectEngine::GetInstance()->ResistEffect(2, u"Assets/effect/jump.efkefc");
 
 
 	return true;
 }
 
 Player::Player()
+	:m_controllerIndex(-1)
 {
 
 }
@@ -144,26 +142,31 @@ Player::~Player()
 
 void Player::Update()
 {
-
 	//カウントダウン中は動かさない。
-	if (!m_canMove)
+	if (m_canMove)
 	{
-		m_modelRender.SetPosition(m_position);
-		m_modelRender.Update();
-		return;
+		if (m_playerControl)
+		{
+			m_playerControl->Update();
+			m_moveDir = m_playerControl->GetMoveDir();
+			m_isJumpRequested = m_playerControl->IsJumpRequested();
+		}
+		else if (m_aiControl)
+		{
+			m_aiControl->Update();
+			m_moveDir = m_aiControl->GetMoveDir();
+			m_isJumpRequested = m_aiControl->IsJumpRequested();
+		}
 	}
+	else
+	{
+		//入力を完全停止。
+		m_moveDir = Vector3::Zero;
+		m_isJumping = false;
 
-	if (m_playerControl)
-	{
-		m_playerControl->Update();
-		m_moveDir = m_playerControl->GetMoveDir();
-		m_isJumpRequested = m_playerControl->IsJumpRequested();
-	}
-	else if (m_aiControl)
-	{
-		m_aiControl->Update();
-		m_moveDir = m_aiControl->GetMoveDir();
-		m_isJumpRequested = m_aiControl->IsJumpRequested();
+		//慣性で動かさないようにする。
+		m_moveSpeed.x = 0.0f;
+		m_moveSpeed.z = 0.0f;
 	}
 
 	//ジャンプ処理。
@@ -171,7 +174,7 @@ void Player::Update()
 	//移動処理。
 	Move(m_moveDir);
 	//入力があるときだけ回転。
-	if (m_moveDir.LengthSq() > 0.001f)
+	if (m_moveDir.LengthSq() > 0.01f)
 	{
 		//回転処理。
 		Rotation(m_moveDir);
@@ -211,7 +214,6 @@ void Player::Move(const Vector3& moveDir)
 
 		return;
 	}
-
 
 	if (m_isDiving)
 	{
@@ -277,10 +279,10 @@ void Player::Jump()
 		m_isDiving = false;
 
 		EffectEmitter* effectEmitter = NewGO<EffectEmitter>(0);
-		effectEmitter->Init(1);
+		effectEmitter->Init(2);
 		effectEmitter->SetPosition(m_position);
 		effectEmitter->SetRotation(m_rotation);
-		effectEmitter->SetScale({ 1.0f,1.0f,1.0f });
+		effectEmitter->SetScale({ 75.0f,75.0f,75.0f });
 		effectEmitter->Play();
 
 		if (!m_isAI)
@@ -387,7 +389,7 @@ void Player::ResetPosition()
 	//AIが落ちた場合はフェードさせない。
 	if (m_isAI)
 	{
-		if (m_position.y <= -3000.0f)
+		if (m_position.y <= RESET_POSITION)
 		{
 			m_position = m_firstPosition;
 			m_characterController.SetPosition(m_firstPosition);
@@ -407,6 +409,7 @@ void Player::ResetPosition()
 		{
 			m_isRespawn = false;
 		}
+
 		//フェード中なら抜ける。
 		if (m_isRespawn)
 		{
@@ -415,7 +418,7 @@ void Player::ResetPosition()
 	}
 
 	//落下し始めたら落下音とエフェクトを再生。
-	if (m_moveSpeed.y <= -1000.0f)
+	if (m_moveSpeed.y <= PLAY_SOND_RESPAWN)
 	{
 		if (!m_isFalling)
 		{
@@ -429,33 +432,14 @@ void Player::ResetPosition()
 	}
 
 	//一定距離落下したらリスポン。
-	if (m_position.y <= -3000.0f)
+	if (m_position.y <= RESET_POSITION)
 	{
 		m_isRespawn = true;
 
 		//フェードアウト。
 		FadeManager::GetInstance()->StartFadeOut(1.0f, [this]() 
 		{
-			//最初の位置に戻す。
-			m_position = m_firstPosition;
-			//キャラコンも最初の位置に戻す。
-			m_characterController.SetPosition(m_firstPosition);
-
-			//フラグもリセット。
-			m_isJumping = false;
-			m_isDiving = false;
-
-			m_modelRender.SetPosition(m_firstPosition);
-			m_modelRender.Update();
-
-			//AIの音は出さない。
-			if (!m_isAI)
-			{
-				SoundManager::Get().Play("Respawn");
-			}
-
-			//落下音を止める。
-			m_isFalling = false;
+			Respawn();
 
 			//フェードイン。
 			FadeManager::GetInstance()->StartFadeIn(1.0f, [this]()
@@ -463,30 +447,84 @@ void Player::ResetPosition()
 				//フェードイン解除。
 				m_isRespawn = false;
 			});
+
+			EffectEmitter* effectEmitter = NewGO<EffectEmitter>(0);
+			effectEmitter->Init(1);
+			effectEmitter->SetPosition(m_position);
+			effectEmitter->SetRotation(m_rotation);
+			effectEmitter->SetScale({ 200.0f,200.0f,200.0f });
+			effectEmitter->Play();
 		});
+	}
+}
+
+void Player::Respawn()
+{
+	//最初の位置に戻す。
+	m_position = m_firstPosition;
+	//キャラコンも最初の位置に戻す。
+	m_characterController.SetPosition(m_firstPosition);
+
+	//フラグもリセット。
+	m_isJumping = false;
+	m_isDiving = false;
+
+	m_modelRender.SetPosition(m_firstPosition);
+	m_modelRender.Update();
+
+	//AIの音は出さない。
+	if (!m_isAI)
+	{
+		SoundManager::Get().Play("Respawn");
+	}
+
+	//落下音を止める。
+	m_isFalling = false;
+}
+
+void Player::SetControllerIndex(int index)
+{
+	m_controllerIndex = index;
+
+	if (m_controllerIndex >= 0)
+	{
+		m_isAI = false;
+		m_playerControl = std::make_unique<PlayerControl>(this, m_controllerIndex);
+		m_aiControl.reset();
+	}
+	else
+	{
+		m_isAI = true;
+		m_aiControl = std::make_unique<AIControl>(this);
+		m_playerControl.reset();
 	}
 }
 
 //コリジョンとの当たり判定処理。
 void Player::CheckCollision()
 {
-	//コリジョンの取得。
-	const auto& collisions = g_collisionObjectManager->FindCollisionObjects("Goal");
-	//コリジョンの配列をfor文で回す。
-	for (auto collision : collisions)
+	if (!m_isGoalReached)
 	{
-		//コリジョンとキャラが当たったら。
-		if (collision->IsHit(m_characterController))
+		//コリジョンの取得。
+		const auto& collisions = g_collisionObjectManager->FindCollisionObjects("Goal");
+		//コリジョンの配列をfor文で回す。
+		for (auto collision : collisions)
 		{
-			if (m_game)
+			//コリジョンとキャラが当たったら。
+			if (collision->IsHit(m_characterController))
 			{
-				SoundManager::Get().Play("Win");
-				m_game->OnPlayerGoal(this);
-			}
+				m_isGoalReached = true;
+				if (m_game)
+				{
+					SoundManager::Get().Play("Win");
+					m_game->OnPlayerGoal(this);
+				}
 
-			return;
+				return;
+			}
 		}
 	}
+
 
 	//hammerのコリジョン取得。
 	const auto& HammerCollisions = g_collisionObjectManager->FindCollisionObjects("Hammer");
@@ -592,6 +630,21 @@ void Player::PlayAnimation()
 	case enState_Hit:
 		//ヒットアニメーションを再生。
 		m_modelRender.PlayAnimation(enAnimationClip_Hit);
+		//再生した後におかしくならないようにする。
+		if (!m_modelRender.IsPlayingAnimation())
+		{
+			if (m_characterController.IsOnGround())
+			{
+				if (m_moveDir.LengthSq() > 0.001f)
+				{
+					m_state = enState_Run;
+				}
+				else
+				{
+					m_state = enState_Idle;
+				}
+			}
+		}
 		break;
 		//勝利ステートだったら。
 	case enState_Victory:
