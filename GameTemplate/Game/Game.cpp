@@ -18,10 +18,16 @@
 #include <cstdlib>
 #include <ctime>
 
+namespace
+{
+	const int MAX_PLAYERS = 4;//プレイヤーの最大数。
+}
+
 bool Game::m_isReady = false;
 
 bool Game::Start()
 {
+	//フェードインする。
 	FadeManager::GetInstance()->StartFadeIn(0.5f);
 
 	//乱数の初期化。
@@ -57,11 +63,6 @@ bool Game::Start()
 
 	//ゲーム全体の設定。
 	GameConfig();
-
-	////////////使わなくなったら消してねーーーーーー///////////////
-	m_debugFont.SetPosition(Vector3(250.0f, 400.0f, 0.0f));
-	m_debugFont.SetScale(1.0f);
-	m_debugFont.SetColor(g_vec4White);
 
 	m_gamePhase = enGamePhase_CameraDemo;
 	m_phaseTimer = 0.0f;
@@ -128,6 +129,19 @@ Game::~Game()
 
 void Game::Update()
 {
+	//ゴール後のリザルト遷移は常に処理を行う。
+	if (m_isGoal)
+	{
+		m_goalTimer -= g_gameTime->GetFrameDeltaTime();
+
+		if (m_goalTimer <= 0.0f)
+		{
+			GoToResult(m_winner);
+			return;
+		}
+	}
+
+	//フェーズ別の処理。
 	switch (m_gamePhase)
 	{
 	case enGamePhase_CameraDemo:
@@ -138,6 +152,7 @@ void Game::Update()
 		{
 			m_gamePhase = enGamePhase_Playing;
 			DeleteGO(m_countdown);
+
 
 			for (auto player : m_players)
 			{
@@ -155,29 +170,11 @@ void Game::Update()
 		break;
 	}
 
+	//その他の終了処理。
 	if (m_isDelete)
 	{
 		DeleteGO(this);
 		return;
-	}
-
-	if (!m_players.empty())
-	{
-		Vector3 pos = m_players[0]->GetPosition();
-		wchar_t buf[128];
-		swprintf_s(buf, L"Pos: %.1f,%.1f,%.1f", pos.x, pos.y, pos.z);
-		m_debugFont.SetText(buf);
-	}
-
-	if (m_isGoal)
-	{
-		m_goalTimer -= g_gameTime->GetFrameDeltaTime();
-
-		if (m_goalTimer <= 0.0f)
-		{
-			GoToResult(m_winner);
-			return;
-		}
 	}
 }
 
@@ -186,13 +183,7 @@ void Game::Update()
 void Game::MakePlayers()
 {
 	//プレイヤーの生成。
-	int humanPlayerCount = GameSettings::PlayerCount;
-
-	//一人プレイならAIを追加。
-	bool isSinglePlayer = (humanPlayerCount == 1);
-
-	//総プレイヤー数。
-	int totalPlayers = isSinglePlayer ? 4 : humanPlayerCount;
+	int humanPlayerCount = 0;
 
 	const char* modelPaths[] =
 	{
@@ -202,29 +193,61 @@ void Game::MakePlayers()
 		"Assets/modelData/Penguin.tkm"
 	};
 
-	for (int i = 0; i < totalPlayers; i++)
+	std::vector<int> connectedPads;
+
+	for (int i = 0; i < MAX_PLAYERS; i++)
+	{
+		if (g_pad[i] && g_pad[i]->IsConnected())
+		{
+			connectedPads.push_back(i);
+		}
+	}
+
+	//コントローラーが一つもつながれていなければ一人だけプレイヤーにする。
+	if (connectedPads.size() == 0)
+	{
+		humanPlayerCount = 1;
+	}
+	else
+	{
+		humanPlayerCount = static_cast<int>(connectedPads.size());
+		if (humanPlayerCount > MAX_PLAYERS)
+		{
+			humanPlayerCount = MAX_PLAYERS;
+		}
+	}
+
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
 		//プレイヤーを生成。
 		auto player = NewGO<Player>(0, ("Player" + std::to_string(i)).c_str());
 
 		player->SetModelPath(modelPaths[i % 4]);
 
-		if (i < humanPlayerCount)
+		if (i == 0)
 		{
-			//一人プレイ。
-			player->SetControllerIndex(i);
-			player->SetIsAI(false);
+			if (!connectedPads.empty())
+			{
+				player->SetControllerIndex(connectedPads[0]);
+			}
+			else
+			{
+				player->SetControllerIndex(0);
+			}
+		}
+		else if (i < connectedPads.size())
+		{
+			player->SetControllerIndex(connectedPads[i]);
 		}
 		else
 		{
-			//複数プレイ時。
-			//コントローラーの番号を設定。
 			player->SetControllerIndex(-1);
-			player->SetIsAI(true);
 		}
 
 		//座標を少しずらして生成。
 		player->SetPosition(Vector3(-400.0f + (i * 200.0f), 0.0f, 100.0f));
+		player->SetGame(this);
+
 		m_players.push_back(player);
 	}
 
@@ -449,23 +472,21 @@ void Game::GameConfig()
 
 void Game::ShowRoundOver()
 {
+	if (m_showRoundOver)
+	{
+		return;
+	}
+
 	m_showRoundOver = true;
 	SoundManager::Get().StopBGM();
 }
 
 void Game::OnPlayerGoal(Player*winner)
 {
+	//すでにゴールしたら無視。
 	if (m_isGoal)
 	{
-		m_goalTimer -= g_gameTime->GetFrameDeltaTime();
-
-		if (m_goalTimer <= 0.0f && !m_isResultCreated)
-		{
-			m_isResultCreated = true;
-			GoToResult(m_winner);
-
-			return;
-		}
+		return;
 	}
 
 	//勝者を設定。
@@ -517,18 +538,50 @@ void Game::GoToResult(Player* winner)
 
 void Game::UpdateCameraDemo()
 {
-	//カメラのデモモードが終わったかを見る。
-	if (m_gameCamera->IsCameraDemoFinished())
+	//カメラがイージングし終わったらフェードアウト開始。
+	if (!m_isFadeOut && !m_isFadeIn)
 	{
-		m_gamePhase = enGamePhase_Countdown;
-
-		//カメラをプレイヤー追従に切り替え。
-		m_gameCamera->StartFollow();
-
-		if (m_countdown)
+		if (m_gameCamera->IsCameraDemoFinished())
 		{
-			m_countdown->StartCountdown();
+			m_isFadeOut = true;
+			FadeManager::GetInstance()->StartFadeOut(0.5f);
 		}
+		return;
+	}
+
+	//フェードアウト完了したらフェードイン開始。
+	if (m_isFadeOut)
+	{
+		if (!FadeManager::GetInstance()->IsFadeing())
+		{
+			m_isFadeOut = false;
+			m_isFadeIn = true;
+
+			FadeManager::GetInstance()->StartFadeIn(0.5f);
+		}
+		return;
+	}
+
+	//フェードイン完了したらカウントダウンへ。
+	if (m_isFadeIn)
+	{
+		if (!FadeManager::GetInstance()->IsFadeing())
+		{
+			m_isFadeIn = false;
+
+			//カウントダウンへ変える。
+			m_gamePhase = enGamePhase_Countdown;
+
+			//カメラを追従状態へ切り替え。
+			m_gameCamera->StartFollow();
+
+			//カウントダウンを開始。
+			if (m_countdown)
+			{
+				m_countdown->StartCountdown();
+			}
+		}
+		return;
 	}
 }
 
@@ -536,7 +589,6 @@ void Game::Render(RenderContext& rc)
 {
 	m_spriteRender.Draw(rc);
 	m_fontRender.Draw(rc);
-	//m_debugFont.Draw(rc);
 	if (m_showRoundOver)
 	{
 		m_roundOverSprite.Draw(rc);

@@ -32,6 +32,11 @@ public:
 		return m_demoTimer >= m_demoDuration;
 	}
 
+	bool IsDemoFinished() const
+	{
+		return m_demoTimer >= m_demoDuration;
+	}
+
 	//メンバ変数。
 private:
 	Player* m_player=nullptr;//プレイヤーのポインタ。

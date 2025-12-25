@@ -29,8 +29,7 @@ BackGround::~BackGround()
 
 void BackGround::Update()
 {
-	//モデルを更新。
-	//m_modelRender.Update();
+	
 }
 
 

@@ -28,7 +28,6 @@ FadeManager::~FadeManager()
 
 }
 
-
 FadeManager* FadeManager::GetInstance()
 {
 	auto*instance = FindGO<FadeManager>("fademanager");
@@ -94,6 +93,17 @@ void FadeManager::Update()
 	Vector4 color = m_fadeColor;
 	color.w = m_alpha;
 	m_spriteRender.SetMulColor(color);
+	m_spriteRender.Update();
+}
+
+void FadeManager::ForceClear()
+{
+	m_alpha = 0.0f;
+	m_state = FadeState::None;
+
+	Vector4 c = m_fadeColor;
+	c.w = 0.0f;
+	m_spriteRender.SetMulColor(c);
 	m_spriteRender.Update();
 }
 

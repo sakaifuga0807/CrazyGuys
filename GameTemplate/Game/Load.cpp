@@ -5,13 +5,20 @@
 
 bool Load::Start()
 {
+	FadeManager::GetInstance()->ForceClear();
+
 	//背景画像。
-	m_sprite.Init("Assets/sprite/Load.dds", 1920.0f, 1080.0f);
-	m_sprite.Update();
+	m_spriteBack.Init("Assets/sprite/Back.dds", 1920.0f, 1080.0f);
+	m_spriteBack.Update();
+
+	//ロードの文字。
+	m_spriteLoading.Init("Assets/sprite/Loading.dds", 1920.0f, 1080.0f);
+	m_spriteLoading.SetPosition({ 100.0f,-400.0f,0.0f });
+	m_spriteLoading.Update();
 
 	//キャラの画像。
-	m_spriteCharacter.Init("Assets/sprite/Guys.dds", 200.0f, 400.0f);
-	m_sprite.Update();
+	m_spriteCharacter.Init("Assets/sprite/Guys.dds", 250.0f,200.0f);
+	m_spriteCharacter.Update();
 
 	//初期化。
 	m_timer = 0.0f;
@@ -56,6 +63,12 @@ void Load::Update()
 
 void Load::Render(RenderContext& rc)
 {
-	m_sprite.Draw(rc);
+	if (m_isFinish)
+	{
+		return;
+	}
+
+	m_spriteBack.Draw(rc);
 	m_spriteCharacter.Draw(rc);
+	m_spriteLoading.Draw(rc);
 }

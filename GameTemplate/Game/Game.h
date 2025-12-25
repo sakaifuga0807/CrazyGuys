@@ -48,7 +48,7 @@ private:
 	BackGround*							m_backGround=nullptr;					//ステージのポインタ。
 	GameCamera*							m_gameCamera=nullptr;					//カメラのポインタ。
 	Goal*								m_goal=nullptr;							//ゴールのポインタ。
-	nsK2Engine::SkyCube*							m_skyCube = nullptr;					//スカイキューブ。
+	nsK2Engine::SkyCube*				m_skyCube = nullptr;					//スカイキューブ。
 	Player*								m_winner = nullptr;						//勝者のプレイヤー。
 	CountdownManager*					m_countdown = nullptr;					//カウントダウンのポインタ。
 	EnGamePhase							m_gamePhase = enGamePhase_CameraDemo;	//ゲームフェーズ。
@@ -60,7 +60,6 @@ private:
 	SpriteRender						m_spriteRender;							//スプライトレンダー。
 	SpriteRender						m_roundOverSprite;						//ラウンドオーバーの画像。
 	FontRender							m_fontRender;							//フォントレンダー。
-	FontRender							m_debugFont;
 	Vector3								m_position=Vector3::Zero;				//座標。
 	Vector3								m_skyCubePosition = Vector3::Zero;		//スカイキューブの座標。
 	Vector3								m_spritePosition = Vector3::Zero;		//スプライトの位置。
@@ -75,7 +74,11 @@ private:
 	bool								m_showRoundOver = false;				//ラウンドオーバーかどうか。
 	bool								m_isGoal = false;						//ゴールしたか。
 	bool								m_isResultCreated = false;				//リザルト画面が作成されたか。
-	static bool m_isReady;//準備完了か。
+	bool								m_isDemoCamera = true;
+	bool								m_isFadeOut = false;
+	bool								m_isFadeIn = false;
+	bool								m_isCountdownStart = false;
+	static bool							m_isReady;								//準備完了か。
 public:
 	bool								m_isDelete = false;						//削除するか。
 };
