@@ -6,7 +6,7 @@ public:
 	//フェードの状態を表す列挙型。
 	enum class FadeState
 	{
-		None,		//フェードなし。
+		None,		//何もしない。
 		FadeIn,		//フェードイン。
 		FadeOut		//フェードアウト。
 	};
@@ -20,10 +20,16 @@ public:
 	static FadeManager* GetInstance();
 
 	//フェードアウトを開始。
-	void StartFadeOut(float duration, std::function<void()>onComplete = nullptr, const Vector4& color = g_vec4Black);
+	void StartFadeOut(float duration,
+		std::function<void()>onComplete = nullptr,
+		const Vector4& color = g_vec4Black
+	);
 
 	//フェードインを開始。
 	void StartFadeIn(float duration, std::function<void()>onCoplete = nullptr, const Vector4& color = g_vec4Black);
+
+	//フェードを強制リセット。
+	void ForceClear();
 
 	//フェード中かどうか。
 	bool IsFadeing()const

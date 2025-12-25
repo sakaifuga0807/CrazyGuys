@@ -13,7 +13,8 @@ public:
 
 private:
 	Game* m_game;
-	SpriteRender m_sprite;
+	SpriteRender m_spriteBack;
+	SpriteRender m_spriteLoading;
 	SpriteRender m_spriteCharacter;
 	
 	float m_timer=0.0f;

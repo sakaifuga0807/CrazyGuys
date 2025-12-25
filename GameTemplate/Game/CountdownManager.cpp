@@ -146,7 +146,7 @@ void CountdownManager::StartCountdown()
 	m_isStarted = true;
 	m_isFinished = false;
 	m_timer = 4.0f;
-	m_currentIndex = 0;
+	m_currentIndex = -1;
 	m_timeInCurrent = 0.0f;
 	m_rotation = 0.0f;
 }

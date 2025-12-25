@@ -157,6 +157,11 @@ void GameCamera::CameraMove()
 
 void GameCamera::UpdateDemoCamera()
 {
+	if (m_demoTimer >= m_demoDuration)
+	{
+		return;
+	}
+
 	m_demoTimer += g_gameTime->GetFrameDeltaTime();
 
 	float t = min(m_demoTimer / m_demoDuration, 1.0f);
