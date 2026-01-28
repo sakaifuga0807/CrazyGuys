@@ -15,6 +15,7 @@
 #include "Result.h"
 #include "SoundManager.h"
 #include "FadeManager.h"
+#include "StageObjectFactory.h"
 #include "MultiViewRender.h"
 #include <cstdlib>
 #include <ctime>
@@ -28,54 +29,46 @@ bool Game::m_isReady = false;
 
 bool Game::Start()
 {
-	//フェードインする。
+	//フェードイン演出を開始する。
 	FadeManager::GetInstance()->StartFadeIn(0.5f);
 
-	//乱数の初期化。
+	//乱数を初期化する。シーソーなどのランダム挙動用。
 	srand(static_cast<unsigned int>(time(nullptr)));
 
-	//ステージを生成。
+	//背景オブジェクトを生成する。
 	m_backGround = NewGO<BackGround>(0, "background");
 
-	//ゴールの生成。
+	//ゴールオブジェクトを生成する。
 	m_goal = NewGO<Goal>(1, "goal");
 
-	//プレイヤーの生成。
+	//プレイヤーを生成する。
 	MakePlayers();
 
-	m_multiviewRender = NewGO<MultiViewRender>(0, "multiView");
-
-	//カメラの生成。
+	//ゲームカメラを生成する。最初はプレイヤー0を追従する。
 	m_gameCamera = NewGO<GameCamera>(0, "gamecamera");
 	m_gameCamera->SetTarget(m_players[0]);
 
-	//カウントダウンを生成。
+	//カウントダウン管理オブジェクトを生成する。
 	m_countdown = NewGO<CountdownManager>(1, "countdown");
 
-	//回転床の生成。
-	MakeRotationGrounds();
+	//ステージギミック生成用Factoryを生成する。
+	//生成したオブジェクトの寿命管理もFactoryが担当する。
+	m_stageFactory = NewGO<StageObjectFactory>(0, "stageFactory");
 
-	//ハンマーの生成。
-	MakeHammers();
-
-	//シーソーの生成。
-	MakeSeesaw();
-
-	//斧の生成。
-	MakeAxes();
-
-	//ゲーム全体の設定。
+	//ゲーム全体設定をJSONから読み込む。
 	GameConfig();
 
+	//初期フェーズはカメラ演出。
 	m_gamePhase = enGamePhase_CameraDemo;
 	m_phaseTimer = 0.0f;
 
+	//カウントダウン終了までプレイヤー操作を無効にする。
 	for (auto player : m_players)
 	{
 		player->SetCanMove(false);
 	}
 
-	//準備完了を伝える。
+	//ゲームの準備完了を通知する。
 	m_isReady = true;
 
 	return true;
@@ -88,51 +81,34 @@ Game::Game()
 
 Game::~Game()
 {
+	//ステージギミックをまとめて破棄する。
+	//個別のDeleteGOはStageObjectFactoryのデストラクタ内で行われる。
+	DeleteGO(m_stageFactory);
+
+	//背景を削除する。
 	DeleteGO(m_backGround);
+
+	//カメラを削除する。
 	DeleteGO(m_gameCamera);
+
+	//ゴールを削除する。
 	DeleteGO(m_goal);
 
-	//プレイヤーを削除。
+	//プレイヤーを全て削除する。
 	for (auto player : m_players)
 	{
 		DeleteGO(player);
 	}
 	m_players.clear();
 
-	//ハンマーを削除。
-	for (auto hammer : m_hammers)
-	{
-		DeleteGO(hammer);
-	}
-	m_hammers.clear();
-
-	//シーソーを削除。
-	for (auto seesaw : m_seesaws)
-	{
-		DeleteGO(seesaw);
-	}
-	m_seesaws.clear();
-
-	//回転する地面を削除。
-	for (auto rotationGround : m_rotationGrounds)
-	{
-		DeleteGO(rotationGround);
-	}
-	m_rotationGrounds.clear();
-
-	//斧を削除。
-	for (auto axe : m_axes)
-	{
-		DeleteGO(axe);
-	}
-	m_axes.clear();
-
+	//スカイキューブを削除する。
 	DeleteGO(m_skyCube);
 }
 
+
 void Game::Update()
 {
-	//ゴール後のリザルト遷移は常に処理を行う。
+	//ゴール後はフェーズに関係なくリザルト遷移待ちを行う。
 	if (m_isGoal)
 	{
 		m_goalTimer -= g_gameTime->GetFrameDeltaTime();
@@ -144,42 +120,45 @@ void Game::Update()
 		}
 	}
 
-	//フェーズ別の処理。
+	//ゲーム進行フェーズごとの処理。
 	switch (m_gamePhase)
 	{
 	case enGamePhase_CameraDemo:
+		//開始時のカメラ演出を更新する。
 		UpdateCameraDemo();
 		return;
 	case enGamePhase_Countdown:
+		//カウントダウン終了後にゲーム開始。
 		if (m_countdown && m_countdown->IsFinished())
 		{
 			m_gamePhase = enGamePhase_Playing;
 			DeleteGO(m_countdown);
 
-
+			//プレイヤー操作を有効にする。
 			for (auto player : m_players)
 			{
 				player->SetCanMove(true);
 			}
 
+			//BGMを再生する。
 			SoundManager::Get().LoadFromJson("Assets/config/Sound.json");
 			SoundManager::Get().Play("GameBGM");
 		}
 		return;
 
 	case enGamePhase_Playing:
-		break;
-	default:
+		//通常のゲーム進行。
 		break;
 	}
 
-	//その他の終了処理。
+	//安全なタイミングでGameを削除する。
 	if (m_isDelete)
 	{
 		DeleteGO(this);
 		return;
 	}
 }
+
 
 
 //プレイヤーの生成処理。
@@ -257,170 +236,6 @@ void Game::MakePlayers()
 	for (auto player : m_players)
 	{
 		player->SetGame(this);
-	}
-}
-
-//回転床の生成処理。
-void Game::MakeRotationGrounds()
-{
-	//回転床の生成。
-	json configDataRotationGround;
-	if (!JsonUtility::LoadJson("Assets/config/RotationGroundList.json", configDataRotationGround))
-	{
-		return;
-	}
-
-	//ノードを取得。
-	auto RotationGroundArray = configDataRotationGround["RotationGrounds"];
-
-	for (int i = 0; i < RotationGroundArray.size(); i++)
-	{
-		auto data = RotationGroundArray[i];
-		//座標、回転、スケールを取得。
-		auto pos = data["Position"];
-		auto rot = data["Rotation"];
-		auto scale = data["Scale"];
-
-		Vector3 position(pos[0].get<float>(), pos[1].get<float>(), pos[2].get<float>());
-		Quaternion rotation(rot[0].get<float>(), rot[1].get<float>(), rot[2].get<float>(), rot[3].get<float>());
-		Vector3 scaling(scale[0].get<float>(), scale[1].get<float>(), scale[2].get<float>());
-		//回転速度も設定する。
-		float angleSpeed = data["AngleSpeed"].get<float>();
-
-		//回転床を生成。
-		auto rotationGround = NewGO<RotationGround>(1, ("rotationground" + std::to_string(i)).c_str());
-		rotationGround->SetPosition(position);
-		rotationGround->SetRotation(rotation);
-		rotationGround->SetScale(scaling);
-		rotationGround->SetAngleSpeed(angleSpeed);
-
-		m_rotationGrounds.push_back(rotationGround);
-	}
-}
-
-//ハンマーの生成処理。
-void Game::MakeHammers()
-{
-	//ハンマーの生成。
-	//Jsonデータを格納する。
-	json configDataHammer;
-	//ファイルを読み込む。
-	if (!JsonUtility::LoadJson("Assets/config/HammerList.json", configDataHammer))
-	{
-		return;
-	}
-
-	//ノードを取得。
-	auto hammerArray = configDataHammer["Hammers"];
-
-	for (int i = 0; i < hammerArray.size(); i++)
-	{
-		auto data = hammerArray[i];
-		//座標、回転、スケールを取得。
-		auto pos = data["Position"];
-		auto rot = data["Rotation"];
-		auto scale = data["Scale"];
-
-		Vector3 position(pos[0].get<float>(), pos[1].get<float>(), pos[2].get<float>());
-		Quaternion rotation(rot[0].get<float>(), rot[1].get<float>(), rot[2].get<float>(), rot[3].get<float>());
-		Vector3 scaling(scale[0].get<float>(), scale[1].get<float>(), scale[2].get<float>());
-
-		//ハンマーを生成。
-		auto hammer = NewGO<Hammer>(1, ("hammer" + std::to_string(i)).c_str());
-		hammer->SetPosition(position);
-		hammer->SetRotation(rotation);
-		hammer->SetScale(scaling);
-		m_hammers.push_back(hammer);
-	}
-}
-
-//シーソーの生成処理。
-void Game::MakeSeesaw()
-{
-	//シーソーの生成。
-	//Jsonデータを格納する。
-	json configDataSeesaw;
-	//ファイルを読み込む。
-	if (!JsonUtility::LoadJson("Assets/config/SeesawList.json", configDataSeesaw))
-	{
-		return;
-	}
-
-	//ノードを取得。
-	auto seesawArray = configDataSeesaw["Seesaws"];
-
-	for (int i = 0; i < seesawArray.size(); i++)
-	{
-		auto data = seesawArray[i];
-
-		//座標、回転、スケールを取得。
-		auto pos = data["Position"];
-		auto rot = data["Rotation"];
-		auto scale = data["Scale"];
-
-		Vector3 position(pos[0].get<float>(), pos[1].get<float>(), pos[2].get<float>());
-		Quaternion rotation(rot[0].get<float>(), rot[1].get<float>(), rot[2].get<float>(), rot[3].get<float>());
-		Vector3 scaling(scale[0].get<float>(), scale[1].get<float>(), scale[2].get<float>());
-
-		//シーソーを生成。
-		auto seesaw = NewGO<Seesaw>(1, ("seesaw" + std::to_string(i)).c_str());
-		seesaw->SetPosition(position);
-		seesaw->SetRotation(rotation);
-		seesaw->SetScale(scaling);
-
-		//ランダムでシーソーの動きを決定。
-		if (rand() % 2 == 0)
-		{
-			seesaw->SetMovingState(Seesaw::enMovingSeesaw::enUp);
-		}
-		else
-		{
-			seesaw->SetMovingState(Seesaw::enMovingSeesaw::enDown);
-		}
-
-		m_seesaws.push_back(seesaw);
-	}
-}
-
-void Game::MakeAxes()
-{
-	//斧の生成。
-	//Jsonデータを格納する。
-	json configDataAxes;
-	//ファイルを読み込む。
-	if (!JsonUtility::LoadJson("Assets/config/AxeList.json", configDataAxes))
-	{
-		return;
-	}
-
-	//ノードを取得。
-	auto axeArray = configDataAxes["Axes"];
-
-	for (int i = 0; i < axeArray.size(); i++)
-	{
-		auto data = axeArray[i];
-
-		//座標、回転、スケールを取得。
-		auto pos = data["Position"];
-		auto rot = data["Rotation"];
-		auto scale = data["Scale"];
-		Vector3 position(pos[0].get<float>(), pos[1].get<float>(), pos[2].get<float>());
-		Quaternion rotation(rot[0].get<float>(), rot[1].get<float>(), rot[2].get<float>(), rot[3].get<float>());
-		Vector3 scaling(scale[0].get<float>(), scale[1].get<float>(), scale[2].get<float>());
-
-		//速度と範囲を取得。
-		float speed = data["Speed"];
-		float range = data["Range"];
-
-		//斧を生成。
-		auto axe = NewGO<Axe>(2, ("axe" + std::to_string(i)).c_str());
-		axe->SetPosition(position);
-		axe->SetRotation(rotation);
-		axe->SetScale(scaling);
-		axe->SetSpeed(speed);
-		axe->SetRange(range);
-
-		m_axes.push_back(axe);
 	}
 }
 
@@ -512,32 +327,33 @@ void Game::OnPlayerGoal(Player* winner)
 
 void Game::GoToResult(Player* winner)
 {
+	//多重呼び出しを防止する。
 	if (m_isDelete)
 	{
 		return;
 	}
 	m_isDelete = true;
 
-	//BGM停止。
+	//BGMを停止する。
 	SoundManager::Get().StopBGM();
 
-	//カメラ無効化。
+	//カメラの更新を停止する。
 	if (m_gameCamera)
 	{
 		m_gameCamera->m_enable = false;
 	}
 
-	//リザルト生成。
+	//リザルト画面を生成する。
 	auto result = NewGO<Result>(3, "result");
 
+	//勝者がいる場合はモデルを設定する。
 	if (winner)
 	{
-		//モデルパスを取得。
 		result->SetWinnerModelPath(winner->GetModelPath());
 	}
-
 	DeleteGO(this);
 }
+
 
 void Game::UpdateCameraDemo()
 {

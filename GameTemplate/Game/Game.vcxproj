@@ -243,10 +243,12 @@
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerControl.cpp" />
+    <ClCompile Include="PlayerManager.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="RotationGround.cpp" />
     <ClCompile Include="Seesaw.cpp" />
     <ClCompile Include="SoundManager.cpp" />
+    <ClCompile Include="StageObjectFactory.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -275,11 +277,13 @@
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerControl.h" />
+    <ClInclude Include="PlayerManager.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="RotationGround.h" />
     <ClInclude Include="Seesaw.h" />
     <ClInclude Include="SoundManager.h" />
+    <ClInclude Include="StageObjectFactory.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h" />
     <ClInclude Include="Title.h" />
