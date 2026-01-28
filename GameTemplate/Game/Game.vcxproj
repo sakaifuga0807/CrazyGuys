@@ -239,6 +239,7 @@
     <ClCompile Include="JsonUtility.cpp" />
     <ClCompile Include="Load.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MultiViewRender.cpp" />
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerControl.cpp" />
@@ -270,6 +271,7 @@
     <ClInclude Include="GameCamera.h" />
     <ClInclude Include="JsonUtility.h" />
     <ClInclude Include="Load.h" />
+    <ClInclude Include="MultiViewRender.h" />
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerControl.h" />

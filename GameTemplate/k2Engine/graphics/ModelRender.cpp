@@ -47,7 +47,7 @@ namespace nsK2Engine {
 		modelInitData.m_vsSkinEntryPointFunc = "VSMainUsePreComputedVertexBuffer";
 		modelInitData.m_vsEntryPointFunc = "VSMainUsePreComputedVertexBuffer";
 		
-		//if (m_animationClips != nullptr)
+		if (m_animationClips != nullptr)
 		{
 			// アニメーションあり。
 			modelInitData.m_vsSkinEntryPointFunc = "VSMainSkinUsePreComputedVertexBuffer";

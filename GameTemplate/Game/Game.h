@@ -10,6 +10,7 @@ class Seesaw;
 class Axe;
 class RotationGround;
 class CountdownManager;
+class MultiViewRender;
 
 class Game : public IGameObject
 {
@@ -52,6 +53,7 @@ private:
 	Player*								m_winner = nullptr;						//勝者のプレイヤー。
 	CountdownManager*					m_countdown = nullptr;					//カウントダウンのポインタ。
 	EnGamePhase							m_gamePhase = enGamePhase_CameraDemo;	//ゲームフェーズ。
+	MultiViewRender*					m_multiviewRender;						//マルチビューレンダラー。
 	std::vector<Player*>				m_players;								//プレイヤーの配列。
 	std::vector<RotationGround*>		m_rotationGrounds;						//回転床の配列。
 	std::vector<Hammer*>				m_hammers;								//ハンマーの配列。
