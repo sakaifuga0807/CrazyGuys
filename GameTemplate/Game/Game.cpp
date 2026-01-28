@@ -15,6 +15,7 @@
 #include "Result.h"
 #include "SoundManager.h"
 #include "FadeManager.h"
+#include "MultiViewRender.h"
 #include <cstdlib>
 #include <ctime>
 
@@ -34,13 +35,15 @@ bool Game::Start()
 	srand(static_cast<unsigned int>(time(nullptr)));
 
 	//ステージを生成。
-	m_backGround=NewGO<BackGround>(0,"background");
+	m_backGround = NewGO<BackGround>(0, "background");
 
 	//ゴールの生成。
 	m_goal = NewGO<Goal>(1, "goal");
 
 	//プレイヤーの生成。
 	MakePlayers();
+
+	m_multiviewRender = NewGO<MultiViewRender>(0, "multiView");
 
 	//カメラの生成。
 	m_gameCamera = NewGO<GameCamera>(0, "gamecamera");
@@ -51,10 +54,10 @@ bool Game::Start()
 
 	//回転床の生成。
 	MakeRotationGrounds();
-	
+
 	//ハンマーの生成。
 	MakeHammers();
-	
+
 	//シーソーの生成。
 	MakeSeesaw();
 
@@ -66,7 +69,7 @@ bool Game::Start()
 
 	m_gamePhase = enGamePhase_CameraDemo;
 	m_phaseTimer = 0.0f;
-	
+
 	for (auto player : m_players)
 	{
 		player->SetCanMove(false);
@@ -380,7 +383,7 @@ void Game::MakeSeesaw()
 }
 
 void Game::MakeAxes()
-{	
+{
 	//斧の生成。
 	//Jsonデータを格納する。
 	json configDataAxes;
@@ -404,7 +407,7 @@ void Game::MakeAxes()
 		Vector3 position(pos[0].get<float>(), pos[1].get<float>(), pos[2].get<float>());
 		Quaternion rotation(rot[0].get<float>(), rot[1].get<float>(), rot[2].get<float>(), rot[3].get<float>());
 		Vector3 scaling(scale[0].get<float>(), scale[1].get<float>(), scale[2].get<float>());
-		
+
 		//速度と範囲を取得。
 		float speed = data["Speed"];
 		float range = data["Range"];
@@ -481,7 +484,7 @@ void Game::ShowRoundOver()
 	SoundManager::Get().StopBGM();
 }
 
-void Game::OnPlayerGoal(Player*winner)
+void Game::OnPlayerGoal(Player* winner)
 {
 	//すでにゴールしたら無視。
 	if (m_isGoal)
