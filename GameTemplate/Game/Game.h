@@ -11,6 +11,8 @@ class Axe;
 class RotationGround;
 class CountdownManager;
 class MultiViewRender;
+class PlayerManager;
+class StageObjectFactory;
 
 class Game : public IGameObject
 {
@@ -19,22 +21,18 @@ public:
 	//ゲームフェーズの列挙型。
 	enum EnGamePhase
 	{
-		enGamePhase_CameraDemo,//カメラデモ
-		enGamePhase_Countdown,//カウントダウン
-		enGamePhase_Playing,//プレイ中
+		enGamePhase_CameraDemo,//カメラデモ。
+		enGamePhase_Countdown,//カウントダウン。
+		enGamePhase_Playing,//プレイ中。
 	};
 
 	Game();
 	~Game();
 	bool Start();
 	void Update();
-	void MakePlayers();
-	void MakeRotationGrounds();
-	void MakeHammers();
-	void MakeSeesaw();
-	void MakeAxes();
 	void GameConfig();
 	void ShowRoundOver();
+	void MakePlayers();
 	void OnPlayerGoal(Player*winner);
 	void GoToResult(Player* winner);
 	void UpdateCameraDemo();
@@ -54,11 +52,9 @@ private:
 	CountdownManager*					m_countdown = nullptr;					//カウントダウンのポインタ。
 	EnGamePhase							m_gamePhase = enGamePhase_CameraDemo;	//ゲームフェーズ。
 	MultiViewRender*					m_multiviewRender;						//マルチビューレンダラー。
+	PlayerManager*						m_playerManager;						//プレイヤーマネージャー。
+	StageObjectFactory*					m_stageFactory;						//ステージファクトリー。
 	std::vector<Player*>				m_players;								//プレイヤーの配列。
-	std::vector<RotationGround*>		m_rotationGrounds;						//回転床の配列。
-	std::vector<Hammer*>				m_hammers;								//ハンマーの配列。
-	std::vector<Seesaw*>				m_seesaws;								//シーソーの配列。
-	std::vector<Axe*>					m_axes;									//斧の配列。
 	SpriteRender						m_spriteRender;							//スプライトレンダー。
 	SpriteRender						m_roundOverSprite;						//ラウンドオーバーの画像。
 	FontRender							m_fontRender;							//フォントレンダー。
@@ -76,10 +72,10 @@ private:
 	bool								m_showRoundOver = false;				//ラウンドオーバーかどうか。
 	bool								m_isGoal = false;						//ゴールしたか。
 	bool								m_isResultCreated = false;				//リザルト画面が作成されたか。
-	bool								m_isDemoCamera = true;
-	bool								m_isFadeOut = false;
-	bool								m_isFadeIn = false;
-	bool								m_isCountdownStart = false;
+	bool								m_isDemoCamera = true;					//カメラかどうか。
+	bool								m_isFadeOut = false;					//フェードアウト中か。
+	bool								m_isFadeIn = false;						//フェードイン中か。
+	bool								m_isCountdownStart = false;				//カウントダウンが始まったか。
 	static bool							m_isReady;								//準備完了か。
 public:
 	bool								m_isDelete = false;						//削除するか。

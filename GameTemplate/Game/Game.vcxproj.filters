@@ -35,6 +35,8 @@
     <ClCompile Include="Axe.cpp" />
     <ClCompile Include="Load.cpp" />
     <ClCompile Include="MultiViewRender.cpp" />
+    <ClCompile Include="StageObjectFactory.cpp" />
+    <ClCompile Include="PlayerManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -66,6 +68,8 @@
     <ClInclude Include="Axe.h" />
     <ClInclude Include="Load.h" />
     <ClInclude Include="MultiViewRender.h" />
+    <ClInclude Include="StageObjectFactory.h" />
+    <ClInclude Include="PlayerManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Game.rc" />
