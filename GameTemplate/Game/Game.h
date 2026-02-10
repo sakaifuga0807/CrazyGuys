@@ -53,7 +53,7 @@ private:
 	EnGamePhase							m_gamePhase = enGamePhase_CameraDemo;	//ゲームフェーズ。
 	MultiViewRender*					m_multiviewRender;						//マルチビューレンダラー。
 	PlayerManager*						m_playerManager;						//プレイヤーマネージャー。
-	StageObjectFactory*					m_stageFactory;						//ステージファクトリー。
+	StageObjectFactory*					m_stageFactory;							//ステージファクトリー。
 	std::vector<Player*>				m_players;								//プレイヤーの配列。
 	SpriteRender						m_spriteRender;							//スプライトレンダー。
 	SpriteRender						m_roundOverSprite;						//ラウンドオーバーの画像。

@@ -31,9 +31,9 @@ public:
 
 	//メンバ変数。
 private:
-	ModelRender m_modelRender;//モデルレンダー。
-	PhysicsStaticObject m_physicsStaticObj;//静的物理オブジェクト。
-	Vector3 m_position;//座標。
-	Vector3 m_scale = Vector3::Zero;//大きさ。
+	ModelRender				m_modelRender;				//モデルレンダー。
+	PhysicsStaticObject		m_physicsStaticObj;			//静的物理オブジェクト。
+	Vector3					m_position;					//座標。
+	Vector3					m_scale = Vector3::Zero;	//大きさ。
 };
 

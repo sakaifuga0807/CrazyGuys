@@ -39,24 +39,24 @@ public:
 
 	//メンバ変数。
 private:
-	Player* m_player=nullptr;//プレイヤーのポインタ。
-	Vector3 m_position=Vector3::Zero;//座標。
-	Vector3 m_toCameraPos=Vector3::Zero;//カメラ位置。
-	Vector3 m_demoStartPos = Vector3::Zero;//デモ開始位置。
-	Vector3 m_demoEndPos = Vector3::Zero;//デモ終了位置。
-	Vector3	m_demoTarget = Vector3::Zero;//デモターゲット。
-	EnCameraMode m_cameraMode = enCameraMode_Demo;//カメラモード。
-	float m_demoTimer = 0.0f;//デモタイマー。
-	float m_demoDuration = 0.0f;//デモ時間。
-	float m_target_Y=0.0f;//ターゲットY。
-	float m_target_Z=0.0f;//ターゲットZ。
-	float m_nearClip=0.0f;//ニアクリップ。
-	float m_farClip=0.0f;//ファークリップ。
-	float m_cameraMax=0.0f;//カメラのY座標の最大値。
-	float m_cameraMin=0.0f;//カメラのY座標の最小値。
-	float m_rotationAngleY=0.0f;//回転角度Y。
-	float m_rotationAngleX=0.0f;//回転角度X。
+	Player*			m_player=nullptr;					//プレイヤーのポインタ。
+	Vector3			m_position=Vector3::Zero;			//座標。
+	Vector3			m_toCameraPos=Vector3::Zero;		//カメラ位置。
+	Vector3			m_demoStartPos = Vector3::Zero;		//デモ開始位置。
+	Vector3			m_demoEndPos = Vector3::Zero;		//デモ終了位置。
+	Vector3			m_demoTarget = Vector3::Zero;		//デモターゲット。
+	EnCameraMode	m_cameraMode = enCameraMode_Demo;	//カメラモード。
+	float			m_demoTimer = 0.0f;					//デモタイマー。
+	float			m_demoDuration = 0.0f;				//デモ時間。
+	float			m_target_Y=0.0f;					//ターゲットY。
+	float			m_target_Z=0.0f;					//ターゲットZ。
+	float			m_nearClip=0.0f;					//ニアクリップ。
+	float			m_farClip=0.0f;						//ファークリップ。
+	float			m_cameraMax=0.0f;					//カメラのY座標の最大値。
+	float			m_cameraMin=0.0f;					//カメラのY座標の最小値。
+	float			m_rotationAngleY=0.0f;				//回転角度Y。
+	float			m_rotationAngleX=0.0f;				//回転角度X。
 public:
-	bool m_enable = true;//カメラの有効無効。
+	bool m_enable = true;								//カメラの有効無効。
 };
 

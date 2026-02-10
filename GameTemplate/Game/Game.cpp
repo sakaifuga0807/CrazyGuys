@@ -371,7 +371,7 @@ void Game::UpdateCameraDemo()
 	//フェードアウト完了したらフェードイン開始。
 	if (m_isFadeOut)
 	{
-		if (!FadeManager::GetInstance()->IsFadeing())
+		if (!FadeManager::GetInstance()->IsFading())
 		{
 			m_isFadeOut = false;
 			m_isFadeIn = true;
@@ -384,7 +384,7 @@ void Game::UpdateCameraDemo()
 	//フェードイン完了したらカウントダウンへ。
 	if (m_isFadeIn)
 	{
-		if (!FadeManager::GetInstance()->IsFadeing())
+		if (!FadeManager::GetInstance()->IsFading())
 		{
 			m_isFadeIn = false;
 
