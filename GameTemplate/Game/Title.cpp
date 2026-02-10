@@ -56,7 +56,7 @@ void Title::Update()
 		return;
 	}
 
-	if (m_isStart && !FadeManager::GetInstance()->IsFadeing())
+	if (m_isStart && !FadeManager::GetInstance()->IsFading())
 	{
 		NewGO<Load>(0, "load");
 		DeleteGO(this);

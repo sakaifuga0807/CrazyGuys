@@ -55,7 +55,7 @@ void Load::Update()
 		FadeManager::GetInstance()->StartFadeIn(0.5f);
 	}
 
-	if (m_isFinish && !FadeManager::GetInstance()->IsFadeing())
+	if (m_isFinish && !FadeManager::GetInstance()->IsFading())
 	{
 		DeleteGO(this);
 	}

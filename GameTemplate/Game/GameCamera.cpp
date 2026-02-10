@@ -4,63 +4,70 @@
 #include "Actor.h"
 #include "JsonUtility.h"
 
+namespace
+{
+	//注視点追従の補間速度。
+	const float FOLLOW_SPEED = 0.1f;
+	//カメラの基本高さオフセット。
+	const float CAMERA_HEIGHT_OFFSET = 150.0f;
+	//プレイヤーY方向追従率。
+	const float CAMERA_Y_FOLLOW_RATE = 0.5f;
+}
+
 bool GameCamera::Start()
 {
-	///////////////////////////////////////////////////////////////////////////////
-	//Jsonファイルの読み込み。
-	///////////////////////////////////////////////////////////////////////////////
-
 	//Jsonデータを格納する変数。
 	json configData;
+
 	//Jsonファイルを読み込む。
-	if (!JsonUtility::LoadJson("Assets//config/GameCamera.json", configData))
+	if (!JsonUtility::LoadJson("Assets/config/GameCamera.json", configData))
 	{
 		return false;
 	}
 
-	//ノードを取得。
+	//GameCameraノードを取得。
 	auto gameCamera = configData["GameCamera"];
 
-	//座標を持ってくる。
+	//カメラの相対座標を取得。
 	auto pos = gameCamera["Position"];
-	//注視点から視点までのベクトルを設定。
 	m_toCameraPos.Set(pos[0], pos[1], pos[2]);
-	//ニアクリップを持ってくる。
+
+	//ニア・ファークリップ設定。
 	m_nearClip = gameCamera["NearClip"];
-	//ファークリップを持ってくる。
 	m_farClip = gameCamera["FarClip"];
-	//カメラの上下を制限。
+
+	//上下回転制限。
 	m_cameraMax = gameCamera["CameraMax"];
 	m_cameraMin = gameCamera["CameraMin"];
-	//注視点を持ってくる。
+
+	//注視点オフセット。
 	m_target_Y = gameCamera["CameraTargetOffSetY"];
 	m_target_Z = gameCamera["CameraTargetOffSetZ"];
-	//XとYの回転角度を持ってくる。
+
+	//回転感度。
 	m_rotationAngleX = gameCamera["RotationAngleX"];
 	m_rotationAngleY = gameCamera["RotationAngleY"];
 
-	//ノードを取得。
+	//デモカメラ設定を取得。
 	auto demo = gameCamera["DemoCamera"];
 
-	//デモカメラのパラメータを持ってくる。
 	auto demoStart = demo["StartPosition"];
 	auto demoEnd = demo["EndPosition"];
 	auto demoTarget = demo["Target"];
 
+	//デモカメラの座標設定。
 	m_demoStartPos.Set(demoStart[0], demoStart[1], demoStart[2]);
 	m_demoEndPos.Set(demoEnd[0], demoEnd[1], demoEnd[2]);
 	m_demoTarget.Set(demoTarget[0], demoTarget[1], demoTarget[2]);
 
+	//デモカメラの移動時間。
 	m_demoDuration = demo["MoveDuration"];
 
-	///////////////////////////////////////////////////////////////////////////////
-	//終わり。
-	///////////////////////////////////////////////////////////////////////////////
+	//カメラのクリップ距離を設定。
+	g_camera3D->SetNear(m_nearClip * 2.0f);
+	g_camera3D->SetFar(m_farClip * 2.0f);
 
-	//カメラのニアクリップとファークリップを設定。
-	g_camera3D->SetNear(m_nearClip * 2);
-	g_camera3D->SetFar(m_farClip * 2);
-
+	//初期カメラ設定。
 	g_camera3D->SetPosition(m_demoStartPos);
 	g_camera3D->SetTarget(m_demoTarget);
 
@@ -73,28 +80,28 @@ bool GameCamera::Start()
 
 GameCamera::GameCamera()
 {
-
 }
 
 GameCamera::~GameCamera()
 {
-
 }
 
 void GameCamera::Update()
 {
-	if (m_enable == false)
+	//無効状態なら更新しない。
+	if (!m_enable)
 	{
 		return;
 	}
 
+	//デモカメラ中。
 	if (m_cameraMode == enCameraMode_Demo)
 	{
 		UpdateDemoCamera();
-
 		return;
 	}
 
+	//通常追従カメラ。
 	CameraMove();
 }
 
@@ -103,53 +110,52 @@ void GameCamera::CameraMove()
 	//プレイヤーの座標を取得。
 	Vector3 playerPos = m_player->GetPosition();
 
-	//注視点を計算する。
+	//注視点を計算。
 	Vector3 target = playerPos;
 	target.y += m_target_Y;
 	target.z += m_target_Z;
 
-	//前フレームの注視点を保持して補完。
+	//注視点を補間して追従させる。
 	static Vector3 lastTarget = target;
-	float followSpeed = 0.1f;
-	lastTarget = lastTarget + (target - lastTarget) * followSpeed;
+	lastTarget += (target - lastTarget) * FOLLOW_SPEED;
 
-	//プレイヤーの注視点を設定。
+	//回転前のカメラ方向を保存。
 	Vector3 toCameraPosOld = m_toCameraPos;
 
-	//右スティックを使ってカメラを回す。
+	//右スティック入力取得。
 	float x = g_pad[0]->GetRStickXF();
 	float y = g_pad[0]->GetRStickYF();
 
-	//Y軸周りの回転。
-	Quaternion qRot;
-	qRot.SetRotationDeg(Vector3::AxisY, m_rotationAngleY * x);
-	qRot.Apply(m_toCameraPos);
+	//Y軸回転。
+	Quaternion rot;
+	rot.SetRotationDeg(Vector3::AxisY, m_rotationAngleY * x);
+	rot.Apply(m_toCameraPos);
 
-	//X軸周りの回転。
+	//X軸回転。
 	Vector3 axisX;
 	axisX.Cross(Vector3::AxisY, m_toCameraPos);
 	axisX.Normalize();
-	qRot.SetRotationDeg(axisX, m_rotationAngleX * y);
-	qRot.Apply(m_toCameraPos);
+	rot.SetRotationDeg(axisX, m_rotationAngleX * y);
+	rot.Apply(m_toCameraPos);
 
-	//カメラの回転の上限をチェックする。
-	Vector3 toPosDir = m_toCameraPos;
-	toPosDir.Normalize();
-	if (toPosDir.y<m_cameraMin || toPosDir.y>m_cameraMax)
+	//上下回転制限チェック。
+	Vector3 dir = m_toCameraPos;
+	dir.Normalize();
+	if (dir.y < m_cameraMin || dir.y > m_cameraMax)
 	{
 		m_toCameraPos = toCameraPosOld;
 	}
 
-	//プレイヤーの高さで追従させる。
+	//プレイヤーの高さ変化を追従。
 	static float lastPlayerY = playerPos.y;
 	float deltaY = playerPos.y - lastPlayerY;
 	lastPlayerY = playerPos.y;
 
-	//カメラの座標を計算。
+	//カメラ座標を計算。
 	Vector3 pos = lastTarget + m_toCameraPos;
-	pos.y += 150.0f + deltaY * 0.5f;
+	pos.y += CAMERA_HEIGHT_OFFSET + deltaY * CAMERA_Y_FOLLOW_RATE;
 
-	//メインカメラに注視点と座標を設定。
+	//カメラに反映。
 	g_camera3D->SetTarget(lastTarget);
 	g_camera3D->SetPosition(pos);
 	g_camera3D->Update();
@@ -157,24 +163,29 @@ void GameCamera::CameraMove()
 
 void GameCamera::UpdateDemoCamera()
 {
+	//デモが終了していたら何もしない。
 	if (m_demoTimer >= m_demoDuration)
 	{
 		return;
 	}
 
+	//デモ時間更新。
 	m_demoTimer += g_gameTime->GetFrameDeltaTime();
 
+	//補間率を計算。
 	float t = min(m_demoTimer / m_demoDuration, 1.0f);
 
+	//デモカメラ座標を計算。
 	Vector3 pos = m_demoStartPos + (m_demoEndPos - m_demoStartPos) * t;
 
+	//カメラ更新。
 	g_camera3D->SetPosition(pos);
 	g_camera3D->SetTarget(m_demoTarget);
 	g_camera3D->Update();
-
 }
 
 void GameCamera::StartFollow()
 {
+	//追従カメラへ切り替え。
 	m_cameraMode = enCameraMode_Follow;
 }

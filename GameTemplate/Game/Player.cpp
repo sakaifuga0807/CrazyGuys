@@ -405,7 +405,7 @@ void Player::ResetPosition()
 	if (m_isRespawn)
 	{
 		//フェードが終わっていたらフラグを戻す。
-		if (Fade&&!Fade->IsFadeing())
+		if (Fade&&!Fade->IsFading())
 		{
 			m_isRespawn = false;
 		}

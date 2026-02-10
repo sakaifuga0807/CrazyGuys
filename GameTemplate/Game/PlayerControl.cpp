@@ -25,15 +25,6 @@ void PlayerControl::Update()
 		return;
 	}
 
-	/*//コントローラーが接続されていなければ、入力は受け付けない。
-	if (!g_pad[m_controllerIndex] || !g_pad[m_controllerIndex]->IsConnected())
-	{
-		m_moveDir = Vector3::Zero44;
-		m_jumpRequested = false;
-
-		return;
-	}*/
-
 	// コントローラーの入力を受け取る。
 	float stickx = g_pad[m_controllerIndex]->GetLStickXF();
 	float sticky = g_pad[m_controllerIndex]->GetLStickYF();

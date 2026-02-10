@@ -3,12 +3,24 @@
 #include "JsonUtility.h"
 #include "SoundManager.h"
 
+#include <array>
 
-#include <array>  
+namespace
+{
+	const float COUNTDOWN_TIME = 4.0f;
 
-bool CountdownManager::Start()  
-{  
-	//Jsonデータを格納する変数。
+	const std::array<const char*, 4> SOUND_NAMES =
+	{
+		"Countdown3",
+		"Countdown2",
+		"Countdown1",
+		"CountdownGO"
+	};
+}
+
+bool CountdownManager::Start()
+{
+	//Jsonデータ読み込み。
 	json configData;
 	if (!JsonUtility::LoadJson("Assets/config/CountdownManager.json", configData))
 	{
@@ -17,8 +29,7 @@ bool CountdownManager::Start()
 
 	auto countdownData = configData["CountdownManager"];
 
-	
-	//スプライトの読み込み。
+	//スプライト設定取得。
 	auto spritePaths = countdownData["Sprites"];
 	auto spriteSize = countdownData["SpriteSize"];
 	auto pos = countdownData["Position"];
@@ -28,124 +39,98 @@ bool CountdownManager::Start()
 	{
 		auto sprite = std::make_unique<SpriteRender>();
 		sprite->Init(path.get<std::string>().c_str(), spriteSize[0], spriteSize[1]);
-		sprite->SetPosition({ pos[0],pos[1],pos[2] });
-		sprite->SetScale({ scale[0],scale[1],scale[2] });
+		sprite->SetPosition({ pos[0], pos[1], pos[2] });
+		sprite->SetScale({ scale[0], scale[1], scale[2] });
 
 		m_sprites.push_back(std::move(sprite));
 	}
 
-	//1枚当たりの表示時間。
+	//各種パラメータ。
 	m_displayDuration = countdownData["DisplayDuration"];
-	//回転を始めるタイミング。
 	m_startRotationTime = countdownData["StartRotationTime"];
-	//回転速度。
 	m_rotationSpeed = countdownData["RotationSpeed"];
-	//縮小率。
 	m_scaleShrinkRate = countdownData["ScaleShrinkRate"];
 
-	//サウンドの読み込み。
+	//サウンド読み込み。
 	SoundManager::Get().LoadFromJson("Assets/config/Sound.json");
 
-    return true;  
+	return true;
 }
 
 void CountdownManager::Update()
 {
-	if (!m_isStarted)
+	if (!m_isStarted || m_isFinished)
 	{
 		return;
 	}
 
-	if (m_isFinished)
-	{
-		return;
-	}
-
-	//カウントダウン。
-	Countdown();
-
-	//回転。
-	Rotation();
+	UpdateCountdown();
+	UpdateRotation();
 
 	m_sprites[m_currentIndex]->Update();
 }
 
-//カウントダウン。
-void CountdownManager::Countdown()
+//----------------------------------------------------
+// カウントダウン処理
+//----------------------------------------------------
+void CountdownManager::UpdateCountdown()
 {
 	int prevIndex = m_currentIndex;
-	//タイマーを減らす。
+
 	m_timer -= g_gameTime->GetFrameDeltaTime();
 
-	//各画像の表示タイミングを設定。
-	if (m_timer<=4.0f&&m_timer > 3.0f)
-	{
-		m_currentIndex = 0;
-	}
-	else if (m_timer<=3.0f&&m_timer > 2.0f)
-	{
-		m_currentIndex = 1;
-	}
-	else if (m_timer<=2.0f&&m_timer > 1.0f)
-	{
-		m_currentIndex = 2;
-	}
-	else if (m_timer <= 1.0f && m_timer > 0.0f)
-	{
-		m_currentIndex = 3;
-	}
-	else
+	if (m_timer <= 0.0f)
 	{
 		m_isFinished = true;
 		return;
 	}
 
+	//残り時間からインデックス算出。
+	m_currentIndex = static_cast<int>(COUNTDOWN_TIME - m_timer);
+
 	if (m_currentIndex != prevIndex)
 	{
-		//サウンド再生。
-		if (m_currentIndex == 0)SoundManager::Get().Play("Countdown3");
-		if (m_currentIndex == 1)SoundManager::Get().Play("Countdown2");
-		if (m_currentIndex == 2)SoundManager::Get().Play("Countdown1");
-		if (m_currentIndex == 3)SoundManager::Get().Play("CountdownGO");
+		SoundManager::Get().Play(SOUND_NAMES[m_currentIndex]);
 
 		m_timeInCurrent = 0.0f;
 		m_rotation = 0.0f;
 	}
 }
 
-//回転。
-void CountdownManager::Rotation()
+//----------------------------------------------------
+// 回転・縮小処理
+//----------------------------------------------------
+void CountdownManager::UpdateRotation()
 {
+	//GOは回転させない。
 	if (m_currentIndex == 3)
 	{
 		return;
 	}
 
-	float scale = 1.0f;
-	//表示してからどれだけ経過したかを計算。
 	m_timeInCurrent += g_gameTime->GetFrameDeltaTime();
 
-	//消える直前に回転させる。
+	float scale = 1.0f;
+
 	if (m_timeInCurrent > m_startRotationTime)
 	{
-		float t = (m_timeInCurrent - m_startRotationTime) / (m_displayDuration - m_startRotationTime);
-		//一回転させる。
+		float t = (m_timeInCurrent - m_startRotationTime)
+			/ (m_displayDuration - m_startRotationTime);
+
 		m_rotation = t * m_rotationSpeed;
-		Math::DegToRad(m_rotation);
-		//小さくなって消える。
 		scale = 1.0f - t * m_scaleShrinkRate;
 	}
 
 	m_rot.SetRotationDegZ(m_rotation);
 	m_sprites[m_currentIndex]->SetRotation(m_rot);
-	m_sprites[m_currentIndex]->SetScale({ scale,scale,1.0f });
+	m_sprites[m_currentIndex]->SetScale({ scale, scale, 1.0f });
 }
 
 void CountdownManager::StartCountdown()
 {
 	m_isStarted = true;
 	m_isFinished = false;
-	m_timer = 4.0f;
+	m_timer = COUNTDOWN_TIME;
 	m_currentIndex = -1;
 	m_timeInCurrent = 0.0f;
 	m_rotation = 0.0f;
@@ -153,12 +138,12 @@ void CountdownManager::StartCountdown()
 
 void CountdownManager::Render(RenderContext& rc)
 {
-	if (!m_isStarted)
+	if (!m_isStarted || m_isFinished)
 	{
 		return;
 	}
 
-	if (!m_isFinished && m_currentIndex < m_sprites.size())
+	if (m_currentIndex < m_sprites.size())
 	{
 		m_sprites[m_currentIndex]->Draw(rc);
 	}
