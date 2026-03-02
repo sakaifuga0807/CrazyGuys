@@ -100,6 +100,9 @@
 
 - https://github.com/sakaifuga0807/CrazyGuys
 
+**実行ファイル**:
+https://drive.google.com/drive/folders/1i3MMpQ0js193N0B1miNgXQH6S75c2OlT?usp=drive_link
+
 ---
 
 # ゲーム内容
